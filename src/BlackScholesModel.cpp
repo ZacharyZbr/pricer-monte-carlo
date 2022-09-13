@@ -22,9 +22,15 @@ BlackScholesModel::BlackScholesModel(int size, double r, double rho, PnlVect *si
 
 void BlackScholesModel::asset(PnlMat *path, double T, int nbTimeSteps, PnlRng *rng)
 {
-    for (int k = 0; k++; k <= nbTimeSteps)
+    printf("Début de la boucle \n");
+    for (int k = 0; k <= nbTimeSteps; k++)
     {
-        printf("k = %f ; \n", k);
-        path->array[k] = k * 0.1;
+        printf("k = %f ; \n", k * T / nbTimeSteps);
+        // path->array[k] = k * 0.1;
+        double brownian_t = pnl_rng_normal(rng) * pow((k * T / nbTimeSteps), 2);
+        printf("brownian simulation is : %f \n", brownian_t);
+        double s_0 = spot_->array[0];
+        double volatility_0 = sigma_->array[0];
+        path->array[k] = s_0 * exp((r_ - pow(volatility_0, 2) / 2) + volatility_0 * brownian_t);
     }
 }
