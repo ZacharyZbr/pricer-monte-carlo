@@ -23,14 +23,16 @@ BlackScholesModel::BlackScholesModel(int size, double r, double rho, PnlVect *si
 void BlackScholesModel::asset(PnlMat *path, double T, int nbTimeSteps, PnlRng *rng)
 {
     printf("Début de la boucle \n");
-    for (int k = 0; k <= nbTimeSteps; k++)
+    for (int underlyingAsset = 0; underlyingAsset < size_ * nbTimeSteps; underlyingAsset += nbTimeSteps)
     {
-        printf("k = %f ; \n", k * T / nbTimeSteps);
-        // path->array[k] = k * 0.1;
-        double brownian_t = pnl_rng_normal(rng) * pow((k * T / nbTimeSteps), 2);
-        printf("brownian simulation is : %f \n", brownian_t);
-        double s_0 = spot_->array[0];
-        double volatility_0 = sigma_->array[0];
-        path->array[k] = s_0 * exp((r_ - pow(volatility_0, 2) / 2) + volatility_0 * brownian_t);
+        printf("asset %d : \n", underlyingAsset);
+        for (int k = 0; k < nbTimeSteps; k++)
+        {
+            double brownian_t = pnl_rng_normal(rng) * pow((k * T / nbTimeSteps), 2);
+            double s_0 = spot_->array[underlyingAsset / nbTimeSteps];
+            double volatility_0 = sigma_->array[underlyingAsset / nbTimeSteps];
+            printf("We put %f value in place %d \n", s_0 * exp((r_ - pow(volatility_0, 2) / 2) + volatility_0 * brownian_t), k + (underlyingAsset));
+            path->array[k + (underlyingAsset)] = s_0 * exp((r_ - pow(volatility_0, 2) / 2) + volatility_0 * brownian_t);
+        }
     }
 }

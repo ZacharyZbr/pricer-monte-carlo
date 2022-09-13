@@ -10,17 +10,17 @@ using namespace std;
 int main()
 {
     PnlVect *G = pnl_vect_new();
-    PnlVect *Sigma = pnl_vect_create_from_scalar(1, 0.2);
-    PnlVect *Spot = pnl_vect_create_from_scalar(1, 10);
+    PnlVect *Sigma = pnl_vect_create_from_scalar(2, 0.2);
+    PnlVect *Spot = pnl_vect_create_from_scalar(2, 10);
     PnlRng *rng = pnl_rng_create(PNL_RNG_MERSENNE);
     long M = 1E5;
     int dim = 2;
     pnl_rng_sseed(rng, time(NULL));
-    int size = 1;
+    int size = 2;
     double interest_rate = 0.02;
     double rho = 0.2;
     BlackScholesModel blackScholesModel1(size, interest_rate, rho, Sigma, Spot);
-    PnlMat *pMatrix = pnl_mat_create_from_zero(1, 3);
+    PnlMat *pMatrix = pnl_mat_create_from_zero(2, 3);
     blackScholesModel1.asset(pMatrix, 6, 3, rng);
 
     // BlackScholesModel * pBlackScholesModel1 = new BlackScholesModel(var_1, var_2, var_2, G, G);
