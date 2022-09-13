@@ -4,6 +4,7 @@
 #include "pnl/pnl_vector.h"
 #include "BlackScholesModel.hpp"
 #include "pnl/pnl_matrix.h"
+#include "Option.hpp"
 
 using namespace std;
 
