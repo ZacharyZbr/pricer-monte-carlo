@@ -2,7 +2,9 @@
 #include <ctime>
 #include "pnl/pnl_random.h"
 #include "pnl/pnl_vector.h"
+#include "BasketOption.hpp"
 #include "BlackScholesModel.hpp"
+
 #include "pnl/pnl_matrix.h"
 #include "Option.hpp"
 
@@ -10,6 +12,12 @@ using namespace std;
 
 int main()
 {
+    float maturity = 3;
+    int nbTimeStep = 1;
+    int size_option = 40;
+    PnlVect *Lambda = pnl_vect_create_from_scalar(1, 0.025);
+    Option *pBasketOption1 = new BasketOption(maturity, nbTimeStep, size_option, Lambda);
+
     PnlVect *G = pnl_vect_new();
     PnlVect *Sigma = pnl_vect_create_from_scalar(2, 0.2);
     PnlVect *Spot = pnl_vect_create_from_scalar(2, 10);
@@ -47,5 +55,12 @@ int main()
     pnl_rng_free(&rng);
     cout << "Black Scholes Model is : " << blackScholesModel1.r_ << " " << blackScholesModel1.rho_ << " " << blackScholesModel1.sigma_ << endl;
     pnl_mat_print(pMatrix);
+
+    //test de la basket option
+    // float maturity = 3;
+    // int nbTimeStep = 1;
+    // int size_option = 40;
+    // PnlVect *Lambda = pnl_vect_create_from_scalar(1, 0.025);
+    // BasketOption BasketOption(maturity, nbTimeStep, size_option, Lambda);
     return 0;
 }
