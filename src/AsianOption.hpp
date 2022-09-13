@@ -7,9 +7,8 @@
 class AsianOption :: Option
 {
   public:
-    double T_;        /// maturité
-    int nbTimeSteps_; /// nombre de pas de temps de discrétisation
-    int size_;        /// dimension du modèle, redondant avec BlackScholesModel::size_
+    float strike_;  /// strike
+    PnlVect* coefficients_; 
     /**
      * Calcule la valeur du payoff sur la trajectoire
      *
@@ -18,5 +17,6 @@ class AsianOption :: Option
      * par la fonction asset.
      * @return phi(trajectoire)
      */
+    AsianOption(double T, int nbTimeSteps, int size, float strike, PnlVect coefficients);
     double payoff(const PnlMat* path) = 0;
 };
