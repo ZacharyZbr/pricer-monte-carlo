@@ -22,10 +22,8 @@ double PerformanceOption::payoff(const PnlMat *path)
         {
             double lambda = coefficients_->array[d];
 
-            // TODO
-
-            numerator += lambda * path->array[i + 1 + d * nbTimeSteps_];
-            denominator += lambda * path->array[i + d * nbTimeSteps_];
+            numerator += lambda * pnl_mat_get(path, d, i + 1); // path->array[i + 1 + d * nbTimeSteps_];
+            denominator += lambda * pnl_mat_get(path, d, i);   // path->array[i + d * nbTimeSteps_];
         }
         if (numerator > denominator)
         {

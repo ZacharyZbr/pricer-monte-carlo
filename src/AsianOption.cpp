@@ -34,8 +34,8 @@ double AsianOption::payoff(const PnlMat *path)
         {
 
             // TODO
-
-            sum += path->array[i + d * nbTimeSteps_]; // path->array[d][i];
+            sum += pnl_mat_get(path, d, i);
+            // sum += path->array[i + d * nbTimeSteps_]; // path->array[d][i];
         }
         payoff += lambda * sum;
     }

@@ -15,8 +15,9 @@ int main()
     float maturity = 3;
     int nbTimeStep = 1;
     int size_option = 40;
+    double strike = 10;
     PnlVect *Lambda = pnl_vect_create_from_scalar(1, 0.025);
-    Option *pBasketOption1 = new BasketOption(maturity, nbTimeStep, size_option, Lambda);
+    BasketOption *pBasketOption1 = new BasketOption(maturity, nbTimeStep, size_option, Lambda, strike);
 
     PnlVect *G = pnl_vect_new();
     PnlVect *Sigma = pnl_vect_create_from_scalar(2, 0.2);
@@ -56,11 +57,11 @@ int main()
     cout << "Black Scholes Model is : " << blackScholesModel1.r_ << " " << blackScholesModel1.rho_ << " " << blackScholesModel1.sigma_ << endl;
     pnl_mat_print(pMatrix);
 
-    //test de la basket option
-    // float maturity = 3;
-    // int nbTimeStep = 1;
-    // int size_option = 40;
-    // PnlVect *Lambda = pnl_vect_create_from_scalar(1, 0.025);
-    // BasketOption BasketOption(maturity, nbTimeStep, size_option, Lambda);
+    // test de la basket option
+    //  float maturity = 3;
+    //  int nbTimeStep = 1;
+    //  int size_option = 40;
+    //  PnlVect *Lambda = pnl_vect_create_from_scalar(1, 0.025);
+    //  BasketOption BasketOption(maturity, nbTimeStep, size_option, Lambda);
     return 0;
 }
