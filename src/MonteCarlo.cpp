@@ -1,5 +1,3 @@
-#pragma once
-
 #include "Option.hpp"
 #include "BlackScholesModel.hpp"
 #include "pnl/pnl_random.h"
@@ -25,10 +23,13 @@ void MonteCarlo::price(double &prix, double &std_dev)
     double meanPayoff = 0;
     int nb_assets = opt_->size_;
     int steps = opt_->nbTimeSteps_;
-    PnlMat *pMatrix = pnl_mat_create_from_zero(nb_assets, steps);
-    for (long sample = 0; sample <= nbSamples_; sample++)
+
+    for (long sample = 0; sample < nbSamples_; sample++)
     {
+        printf("On est dans la boucle  : %lu \n", sample);
+        PnlMat *pMatrix = pnl_mat_create_from_zero(nb_assets, steps);
         mod_->asset(pMatrix, opt_->T_, steps, rng_);
+        printf("finito \n");
         meanPayoff += opt_->payoff(pMatrix);
     }
     prix = meanPayoff / nbSamples_;
