@@ -2,15 +2,13 @@
 
 #include "pnl/pnl_vector.h"
 #include "pnl/pnl_matrix.h"
+#include "Option.hpp"
 
 /// \brief Classe Option abstraite
-class Option
+class PerformanceOption : public Option
 {
 public:
-  double T_;        /// maturité
-  int nbTimeSteps_; /// nombre de pas de temps de discrétisation
-  int size_;        /// dimension du modèle, redondant avec BlackScholesModel::size_
-
+  PnlVect *coefficients_;
   /**
    * Calcule la valeur du payoff sur la trajectoire
    *
@@ -19,5 +17,6 @@ public:
    * par la fonction asset.
    * @return phi(trajectoire)
    */
-  virtual double payoff(const PnlMat *path) = 0;
+  PerformanceOption(double T, int nbTimeSteps, int size, PnlVect *coefficients);
+  double payoff(const PnlMat *path) = 0;
 };

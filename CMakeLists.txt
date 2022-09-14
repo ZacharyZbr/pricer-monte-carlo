@@ -47,8 +47,9 @@ add_subdirectory(src/jlparser)
 add_executable(test-parser src/test_parser.cpp)
 target_link_libraries(test-parser jl_parser ${LIBS})
 
-add_executable(mc-example src/mc_example.cpp src/BlackScholesModel.cpp)
+add_executable(mc-example src/mc_example.cpp src/BlackScholesModel.cpp src/BasketOption.cpp src/MonteCarlo.cpp)
 target_link_libraries(mc-example jl_parser ${LIBS})
+
 
 add_executable(test src/test_zz.cpp)
 target_link_libraries(test jl_parser ${LIBS})

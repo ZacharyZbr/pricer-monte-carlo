@@ -2,26 +2,43 @@
 #include <ctime>
 #include "pnl/pnl_random.h"
 #include "pnl/pnl_vector.h"
+#include "BasketOption.hpp"
 #include "BlackScholesModel.hpp"
+#include "MonteCarlo.hpp"
+
 #include "pnl/pnl_matrix.h"
+#include "Option.hpp"
 
 using namespace std;
 
 int main()
 {
+    float maturity = 6;
+    int nbTimeStep = 3;
+    int size_option = 2;
+    double strike = 8;
+    PnlVect *Lambda = pnl_vect_create_from_scalar(2, 0.025);
+    BasketOption *pBasketOption1 = new BasketOption(maturity, nbTimeStep, size_option, Lambda, strike);
+
     PnlVect *G = pnl_vect_new();
-    PnlVect *Sigma = pnl_vect_create_from_scalar(1, 0.2);
-    PnlVect *Spot = pnl_vect_create_from_scalar(1, 10);
+    PnlVect *Sigma = pnl_vect_create_from_scalar(2, 0.2);
+    PnlVect *Spot = pnl_vect_create_from_scalar(2, 10);
     PnlRng *rng = pnl_rng_create(PNL_RNG_MERSENNE);
     long M = 1E5;
     int dim = 2;
     pnl_rng_sseed(rng, time(NULL));
-    int size = 1;
+    int size = 2;
     double interest_rate = 0.02;
     double rho = 0.2;
-    BlackScholesModel blackScholesModel1(size, interest_rate, rho, Sigma, Spot);
-    PnlMat *pMatrix = pnl_mat_create_from_zero(1, 3);
-    blackScholesModel1.asset(pMatrix, 6, 3, rng);
+    BlackScholesModel *blackScholesModel1 = new BlackScholesModel(size, interest_rate, rho, Sigma, Spot);
+
+    MonteCarlo *monteCarlo1 = new MonteCarlo(blackScholesModel1, pBasketOption1, rng, 0.0, 1000);
+    double price = 0.0;
+    double stdev = 0.0;
+    monteCarlo1->price(price, stdev);
+    printf("Le prix de l'option est : %f \n", price);
+    // PnlMat *pMatrix = pnl_mat_create_from_zero(2, 3);
+    // blackScholesModel1.asset(pMatrix, 6, 3, rng);
 
     // BlackScholesModel * pBlackScholesModel1 = new BlackScholesModel(var_1, var_2, var_2, G, G);
 
@@ -44,7 +61,14 @@ int main()
 
     pnl_vect_free(&G);
     pnl_rng_free(&rng);
-    cout << "Black Scholes Model is : " << blackScholesModel1.r_ << " " << blackScholesModel1.rho_ << " " << blackScholesModel1.sigma_ << endl;
-    pnl_mat_print(pMatrix);
+    // cout << "Black Scholes Model is : " << blackScholesModel1.r_ << " " << blackScholesModel1.rho_ << " " << blackScholesModel1.sigma_ << endl;
+    // pnl_mat_print(pMatrix);
+
+    // test de la basket option
+    //  float maturity = 3;
+    //  int nbTimeStep = 1;
+    //  int size_option = 40;
+    //  PnlVect *Lambda = pnl_vect_create_from_scalar(1, 0.025);
+    //  BasketOption BasketOption(maturity, nbTimeStep, size_option, Lambda);
     return 0;
 }
