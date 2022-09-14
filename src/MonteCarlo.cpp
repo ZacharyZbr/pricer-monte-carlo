@@ -27,10 +27,13 @@ void MonteCarlo::price(double &prix, double &std_dev)
     for (long sample = 0; sample < nbSamples_; sample++)
     {
         printf("On est dans la boucle  : %lu \n", sample);
+        printf("steps vzut : %d \n", steps);
         PnlMat *pMatrix = pnl_mat_create_from_zero(nb_assets, steps);
         mod_->asset(pMatrix, opt_->T_, steps, rng_);
         printf("finito \n");
         meanPayoff += opt_->payoff(pMatrix);
+        printf("Le calcul du payoff est : %f \n", opt_->payoff(pMatrix));
+        printf("Le payoff est : %f \n", meanPayoff);
     }
     prix = meanPayoff / nbSamples_;
 }
