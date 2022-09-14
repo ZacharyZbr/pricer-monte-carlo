@@ -6,32 +6,48 @@
 #include "BasketOption.hpp"
 #include "BlackScholesModel.hpp"
 #include "MonteCarlo.hpp"
-
+#include "jlparser/parser.hpp"
 #include "pnl/pnl_matrix.h"
 #include "Option.hpp"
 
-int main(){
+int main(int argc, char** argv){
 
-    float maturity = 3;
-    int nbTimeStep = 2;
-    int size_option = 40;
-    double strike = 100;
-    PnlVect *Lambda = pnl_vect_create_from_scalar(40, 0.025);
-    BasketOption *pBasketOption1 = new BasketOption(maturity, nbTimeStep, size_option, Lambda, strike);
+    double T, r, strike, correlation;
+    PnlVect *spot, *sigma, *divid, *payoff_coefficients;
+    int size, nbTimeStep;
+    size_t n_samples;
 
-    PnlVect *G = pnl_vect_new();
-    PnlVect *Sigma = pnl_vect_create_from_scalar(40, 0.2);
-    PnlVect *Spot = pnl_vect_create_from_scalar(40, 100);
+    char* infile = argv[1];
+    Param* P = new Parser(infile);
+
+    //P->extract("option type", type);
+    P->extract("maturity", T);
+    P->extract("option size", size);
+    P->extract("spot", spot, size);
+    P->extract("volatility", sigma, size);
+    P->extract("interest rate", r);
+    if (P->extract("dividend rate", divid, size, true) == false) {
+    divid = pnl_vect_create_from_zero(size);
+    }
+    P->extract("strike", strike);
+    P->extract("sample number", n_samples);
+    P->extract("correlation", correlation);
+    P->extract("timestep number", nbTimeStep);
+
+    printf("nbTimeStep = %d \n ", nbTimeStep);
+    P->extract("payoff coefficients", payoff_coefficients, size); 
+
+
+    BasketOption *pBasketOption1 = new BasketOption(T, nbTimeStep, size, payoff_coefficients, strike);
+
     PnlRng *rng = pnl_rng_create(PNL_RNG_MERSENNE);
-    long M = 1E5;
-    int dim = 40;
+    // long M = 1E5;
+    // int dim = 40;
     pnl_rng_sseed(rng, time(NULL));
-    int size = 40;
-    double interest_rate = 0.04879;
-    double rho = 0.0;
-    BlackScholesModel *blackScholesModel1 = new BlackScholesModel(size, interest_rate, rho, Sigma, Spot);
 
-    MonteCarlo *monteCarlo1 = new MonteCarlo(blackScholesModel1, pBasketOption1, rng, 0.0, 50000);
+    BlackScholesModel *blackScholesModel1 = new BlackScholesModel(size, r, correlation, sigma, spot);
+
+    MonteCarlo *monteCarlo1 = new MonteCarlo(blackScholesModel1, pBasketOption1, rng, T/nbTimeStep, 50000);
     double price = 0.0;
     double stdev = 0.0;
     monteCarlo1->price(price, stdev);

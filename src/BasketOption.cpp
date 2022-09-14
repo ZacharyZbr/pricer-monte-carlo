@@ -24,17 +24,14 @@ BasketOption::BasketOption(double T, int nbTimeSteps, int size, PnlVect *lambda,
 double BasketOption::payoff(const PnlMat *path)
 {
   double somme = 0;
-  for (int k = 0; k < size_; k++)
+  for (int k = 0; k < path->m; k++)
   {
-    somme += pnl_mat_get(path, k, nbTimeSteps_-1) * lambda_->array[k];
+    somme += pnl_mat_get(path, k, path->n-1) * pnl_vect_get(lambda_, k);
   }
-  double payoff = somme - strike_;
-  if (payoff > 0)
+  somme = somme - strike_;
+  if (somme > 0)
   {
-    return payoff;
+    return somme;
   }
-  else
-  {
-    return 0;
-  }
+  return 0;
 }

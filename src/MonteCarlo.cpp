@@ -23,19 +23,18 @@ void MonteCarlo::price(double &prix, double &std_dev)
     double meanPayoff = 0;
     int nb_assets = opt_->size_;
     int steps = opt_->nbTimeSteps_;
-
+    
     for (long sample = 0; sample < nbSamples_; sample++)
     {
-        printf("On est dans la boucle  : %lu \n", sample);
-        printf("steps vzut : %d \n", steps);
-        PnlMat *pMatrix = pnl_mat_create_from_zero(nb_assets, steps);
+
+        PnlMat *pMatrix = pnl_mat_create_from_zero(nb_assets, steps+1);
         mod_->asset(pMatrix, opt_->T_, steps, rng_);
-        printf("finito \n");
+
         meanPayoff += opt_->payoff(pMatrix);
-        printf("Le calcul du payoff est : %f \n", opt_->payoff(pMatrix));
-        printf("Le payoff est : %f \n", meanPayoff);
+
+        pnl_mat_free(&pMatrix);
     }
-    prix = meanPayoff / nbSamples_;
+    prix = exp(-mod_->r_*opt_->T_)*meanPayoff / nbSamples_;
 }
 
 /**
