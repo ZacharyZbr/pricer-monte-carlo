@@ -46,8 +46,6 @@ int main(int argc, char **argv)
 
     PnlRng *rng = pnl_rng_create(PNL_RNG_MERSENNE);
     pnl_rng_sseed(rng, time(NULL));
-
-    PerformanceOption *pPerfOption1 = new PerformanceOption(T, nbTimeStep, size, payoff_coefficients);
     BlackScholesModel *blackScholesModel1 = new BlackScholesModel(size, r, correlation, sigma, spot);
     if (type == "basket")
     {
@@ -56,6 +54,8 @@ int main(int argc, char **argv)
 
         MonteCarlo *monteCarlo1 = new MonteCarlo(blackScholesModel1, pBasketOption1, rng, T / nbTimeStep, 50000);
         monteCarlo1->price(price, stdev);
+        delete (pBasketOption1);
+        delete (monteCarlo1);
     }
     else if (type == "asian")
     {
@@ -63,6 +63,8 @@ int main(int argc, char **argv)
         AsianOption *pAsianOption1 = new AsianOption(T, nbTimeStep, size, strike, payoff_coefficients);
         MonteCarlo *monteCarlo1 = new MonteCarlo(blackScholesModel1, pAsianOption1, rng, T / nbTimeStep, 50000);
         monteCarlo1->price(price, stdev);
+        delete (pAsianOption1);
+        delete (monteCarlo1);
     }
     else
     {
@@ -71,8 +73,16 @@ int main(int argc, char **argv)
 
         MonteCarlo *monteCarlo1 = new MonteCarlo(blackScholesModel1, pPerfOption1, rng, T / nbTimeStep, 50000);
         monteCarlo1->price(price, stdev);
+        delete (pPerfOption1);
+        delete (monteCarlo1);
     }
 
+    delete (blackScholesModel1);
+    delete (P);
+
+    pnl_vect_free(&divid);
+    pnl_vect_free(&payoff_coefficients);
+    pnl_rng_free(&rng);
     std::cout << "le prix de l'option " << type << " est " << price << std::endl;
 
     return 0;

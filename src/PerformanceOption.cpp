@@ -10,6 +10,8 @@ PerformanceOption::PerformanceOption(double T, int nbTimeSteps, int size, PnlVec
     this->size_ = size;
 }
 
+PerformanceOption::~PerformanceOption() {}
+
 double PerformanceOption::payoff(const PnlMat *path)
 {
 

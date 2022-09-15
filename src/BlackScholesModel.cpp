@@ -25,6 +25,17 @@ BlackScholesModel::BlackScholesModel(int size, double r, double rho, PnlVect *si
     pnl_mat_chol(correlationMat_);
 }
 
+BlackScholesModel::~BlackScholesModel()
+{
+    // Deallocate the memory that was previously reserved
+    //  for this string.
+    pnl_vect_free(&sigma_);
+    pnl_vect_free(&spot_);
+    pnl_mat_free(&correlationMat_);
+    pnl_vect_free(&gaussian_);
+    pnl_vect_free(&rowChol_);
+}
+
 void BlackScholesModel::asset(PnlMat *path, double T, int nbTimeSteps, PnlRng *rng)
 {
 

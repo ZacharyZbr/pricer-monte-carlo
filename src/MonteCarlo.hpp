@@ -15,6 +15,8 @@ public:
   PnlMat *pMatrix_;
 
   MonteCarlo(BlackScholesModel *mod, Option *opt, PnlRng *rng, double fdStep, long nbSamples);
+
+  ~MonteCarlo();
   /**
    * Calcule le prix de l'option à la date 0
    *

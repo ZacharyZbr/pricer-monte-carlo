@@ -12,6 +12,8 @@ MonteCarlo::MonteCarlo(BlackScholesModel *mod, Option *opt, PnlRng *rng, double 
     this->nbSamples_ = nbSamples;
 }
 
+MonteCarlo::~MonteCarlo() {}
+
 /**
  * Calcule le prix de l'option à la date 0
  *

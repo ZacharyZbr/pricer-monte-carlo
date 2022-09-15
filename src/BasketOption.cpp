@@ -13,6 +13,8 @@ BasketOption::BasketOption(double T, int nbTimeSteps, int size, PnlVect *lambda,
   this->strike_ = strike;
 }
 
+BasketOption::~BasketOption() {}
+
 /**
  * Calcule la valeur du payoff sur la trajectoire
  *
@@ -26,7 +28,7 @@ double BasketOption::payoff(const PnlMat *path)
   double somme = 0;
   for (int k = 0; k < path->m; k++)
   {
-    somme += pnl_mat_get(path, k, path->n-1) * pnl_vect_get(lambda_, k);
+    somme += pnl_mat_get(path, k, path->n - 1) * pnl_vect_get(lambda_, k);
   }
   somme = somme - strike_;
   if (somme > 0)

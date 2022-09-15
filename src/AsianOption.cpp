@@ -20,6 +20,8 @@ AsianOption::AsianOption(double T, int nbTimeSteps, int size, float strike, PnlV
     this->size_ = size;
 }
 
+AsianOption::~AsianOption() {}
+
 double AsianOption::payoff(const PnlMat *path)
 {
 
