@@ -21,6 +21,7 @@ MonteCarlo::MonteCarlo(BlackScholesModel *mod, Option *opt, PnlRng *rng, double 
 void MonteCarlo::price(double &prix, double &std_dev)
 {
     double meanPayoff = 0;
+    double meanPayoffSquared = 0;
     int nb_assets = opt_->size_;
     int steps = opt_->nbTimeSteps_;
 
@@ -31,10 +32,12 @@ void MonteCarlo::price(double &prix, double &std_dev)
         mod_->asset(pMatrix, opt_->T_, steps, rng_);
 
         meanPayoff += opt_->payoff(pMatrix);
-
+        meanPayoffSquared += opt_->payoff(pMatrix)*opt_->payoff(pMatrix);
         pnl_mat_free(&pMatrix);
     }
     prix = exp(-mod_->r_ * opt_->T_) * meanPayoff / nbSamples_;
+    double ksiSquared = exp(-2*mod_->r_ * opt_->T_) * (meanPayoffSquared / nbSamples_-((meanPayoff/nbSamples_)*(meanPayoff/nbSamples_)));
+    std_dev = sqrt(ksiSquared/nbSamples_);
 }
 
 /**

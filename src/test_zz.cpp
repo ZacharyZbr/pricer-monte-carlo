@@ -74,6 +74,7 @@ int main(int argc, char **argv)
     }
 
     std::cout << "le prix de l'option " << type << " est " << price << std::endl;
+    std::cout << "largeur de l'intervalle " << type << " est " << stdev << std::endl;
 
     return 0;
 }
