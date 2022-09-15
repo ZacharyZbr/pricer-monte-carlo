@@ -13,7 +13,8 @@
 #include "pnl/pnl_matrix.h"
 #include "Option.hpp"
 
-int main(int argc, char** argv){
+int main(int argc, char **argv)
+{
 
     double T, r, strike, correlation;
     PnlVect *spot, *sigma, *divid, *payoff_coefficients;
@@ -23,9 +24,8 @@ int main(int argc, char** argv){
     double price = 0.0;
     double stdev = 0.0;
 
-
-    char* infile = argv[1];
-    Param* P = new Parser(infile);
+    char *infile = argv[1];
+    Param *P = new Parser(infile);
 
     P->extract("option type", type);
     P->extract("maturity", T);
@@ -33,46 +33,46 @@ int main(int argc, char** argv){
     P->extract("spot", spot, size);
     P->extract("volatility", sigma, size);
     P->extract("interest rate", r);
-    if (P->extract("dividend rate", divid, size, true) == false) {
-    divid = pnl_vect_create_from_zero(size);
+    if (P->extract("dividend rate", divid, size, true) == false)
+    {
+        divid = pnl_vect_create_from_zero(size);
     }
     P->extract("sample number", n_samples);
     P->extract("correlation", correlation);
     P->extract("timestep number", nbTimeStep);
 
     printf("nbTimeStep = %d \n ", nbTimeStep);
-    P->extract("payoff coefficients", payoff_coefficients, size); 
+    P->extract("payoff coefficients", payoff_coefficients, size);
 
     PnlRng *rng = pnl_rng_create(PNL_RNG_MERSENNE);
     pnl_rng_sseed(rng, time(NULL));
 
-
-
+    PerformanceOption *pPerfOption1 = new PerformanceOption(T, nbTimeStep, size, payoff_coefficients);
     BlackScholesModel *blackScholesModel1 = new BlackScholesModel(size, r, correlation, sigma, spot);
-
-
-    if(type == "basket"){
+    if (type == "basket")
+    {
         P->extract("strike", strike);
         BasketOption *pBasketOption1 = new BasketOption(T, nbTimeStep, size, payoff_coefficients, strike);
 
-        MonteCarlo *monteCarlo1 = new MonteCarlo(blackScholesModel1, pBasketOption1, rng, T/nbTimeStep, 50000);
+        MonteCarlo *monteCarlo1 = new MonteCarlo(blackScholesModel1, pBasketOption1, rng, T / nbTimeStep, 50000);
         monteCarlo1->price(price, stdev);
-
-    }else if(type == "asian"){
+    }
+    else if (type == "asian")
+    {
         P->extract("strike", strike);
         AsianOption *pAsianOption1 = new AsianOption(T, nbTimeStep, size, strike, payoff_coefficients);
-        MonteCarlo *monteCarlo1 = new MonteCarlo(blackScholesModel1, pAsianOption1, rng, T/nbTimeStep, 50000);
+        MonteCarlo *monteCarlo1 = new MonteCarlo(blackScholesModel1, pAsianOption1, rng, T / nbTimeStep, 50000);
         monteCarlo1->price(price, stdev);
+    }
+    else
+    {
 
-    } else{
-        
         PerformanceOption *pPerfOption1 = new PerformanceOption(T, nbTimeStep, size, payoff_coefficients);
 
-        MonteCarlo *monteCarlo1 = new MonteCarlo(blackScholesModel1, pPerfOption1, rng, T/nbTimeStep, 50000);
+        MonteCarlo *monteCarlo1 = new MonteCarlo(blackScholesModel1, pPerfOption1, rng, T / nbTimeStep, 50000);
         monteCarlo1->price(price, stdev);
-
     }
-    
+
     std::cout << "le prix de l'option " << type << " est " << price << std::endl;
 
     return 0;

@@ -27,7 +27,7 @@ double AsianOption::payoff(const PnlMat *path)
 
     for (int d = 0; d < size_; d++)
     {
-        double lambda = coefficients_->array[d];
+        double lambda = pnl_vect_get(coefficients_, d);
         lambda /= (nbTimeSteps_ + 1);
         double sum = 0;
         for (int i = 0; i <= nbTimeSteps_; i++)

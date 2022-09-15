@@ -13,6 +13,9 @@ public:
   double rho_;     /// paramètre de corrélation
   PnlVect *sigma_; /// vecteur de volatilités
   PnlVect *spot_;  /// valeurs initiales des sous-jacents
+  PnlMat *correlationMat_;
+  PnlVect *gaussian_;
+  PnlVect *rowChol_;
 
   BlackScholesModel(int size, double r, double rho, PnlVect *sigma, PnlVect *spot);
 
