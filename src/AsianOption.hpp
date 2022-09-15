@@ -20,5 +20,5 @@ public:
    */
   AsianOption(double T, int nbTimeSteps, int size, float strike, PnlVect *coefficients);
 
-  double payoff(const PnlMat *path) = 0;
+  double payoff(const PnlMat *path) override;
 };

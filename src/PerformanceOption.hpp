@@ -18,5 +18,5 @@ public:
    * @return phi(trajectoire)
    */
   PerformanceOption(double T, int nbTimeSteps, int size, PnlVect *coefficients);
-  double payoff(const PnlMat *path) = 0;
+  double payoff(const PnlMat *path) override;
 };
