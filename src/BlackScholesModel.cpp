@@ -60,3 +60,54 @@ void BlackScholesModel::asset(PnlMat *path, double T, int nbTimeSteps, PnlRng *r
         }
     }
 }
+
+void BlackScholesModel::asset(PnlMat *path, double t, double T, int nbTimeSteps, PnlRng *rng, const PnlMat *past)
+{
+
+    // Initialize path matrix for past values for each underlying asset
+    PnlVect *past_col = pnl_vect_create(past->n);
+    for (int time_step = 0; time_step < past->n - 1; time_step++)
+    {
+        pnl_mat_get_col(past_col, past, time_step);
+        pnl_mat_set_col(path, past_col, time_step);
+    }
+
+    pnl_vect_rng_normal(gaussian_, size_, rng);
+
+    for (int underlyingAsset = 0; underlyingAsset < size_; underlyingAsset++)
+    {
+
+        pnl_mat_get_row(rowChol_, correlationMat_, underlyingAsset);
+
+        double volatility = pnl_vect_get(sigma_, underlyingAsset);
+
+        double scalar_product = pnl_vect_scalar_prod(rowChol_, gaussian_);
+
+        double time_gap = (T / nbTimeSteps) - (t - ((past->n - 1) * (T / nbTimeSteps)));
+
+        double price_now = pnl_mat_get(past, underlyingAsset, past->n);
+
+        double new_price = price_now * exp((r_ - (volatility * volatility / 2)) * time_gap + (volatility * sqrt(time_gap) * scalar_product));
+
+        pnl_mat_set(path, underlyingAsset, past->n - 1, new_price);
+    }
+
+    for (int k = past->n; k < nbTimeSteps; k++)
+    {
+        pnl_vect_rng_normal(gaussian_, size_, rng);
+
+        for (int underlyingAsset = 0; underlyingAsset < size_; underlyingAsset++)
+        {
+
+            pnl_mat_get_row(rowChol_, correlationMat_, underlyingAsset);
+
+            double volatility = pnl_vect_get(sigma_, underlyingAsset);
+
+            double scalar_product = pnl_vect_scalar_prod(rowChol_, gaussian_);
+
+            double new_price = pnl_mat_get(path, underlyingAsset, k - 1) * exp((r_ - (volatility * volatility / 2)) * ((T / nbTimeSteps)) + (volatility * sqrt((T / nbTimeSteps)) * scalar_product));
+
+            pnl_mat_set(path, underlyingAsset, k, new_price);
+        }
+    }
+}
