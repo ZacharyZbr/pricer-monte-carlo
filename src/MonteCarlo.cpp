@@ -62,6 +62,7 @@ void MonteCarlo::price(const PnlMat *past, double t, double &prix, double &std_d
     {
 
         PnlMat *pMatrix = pnl_mat_create_from_zero(nb_assets, steps + 1);
+        // printf("Size of the path matrix is : %u \n", pMatrix->n);
         mod_->asset(pMatrix, t, opt_->T_, steps, rng_, past);
 
         meanPayoff += opt_->payoff(pMatrix);

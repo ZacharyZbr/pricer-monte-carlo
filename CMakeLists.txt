@@ -51,7 +51,7 @@ add_executable(mc-example src/mc_example.cpp src/BlackScholesModel.cpp src/Baske
 target_link_libraries(mc-example jl_parser ${LIBS})
 
 
-add_executable(test src/test_zz.cpp src/BlackScholesModel.cpp src/BasketOption.cpp src/MonteCarlo.cpp src/AsianOption.cpp src/PerformanceOption.cpp)
+add_executable(test src/test_price_t.cpp src/BlackScholesModel.cpp src/BasketOption.cpp src/MonteCarlo.cpp src/AsianOption.cpp src/PerformanceOption.cpp)
 target_link_libraries(test jl_parser ${LIBS})
 
 # Print compiler flags

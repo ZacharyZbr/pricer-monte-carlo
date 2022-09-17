@@ -4,6 +4,7 @@
 #include "pnl/pnl_vector.h"
 #include "pnl/pnl_matrix.h"
 #include "BlackScholesModel.hpp"
+#include "assert.h"
 
 /// \brief Modèle de Black Scholes
 
@@ -74,25 +75,25 @@ void BlackScholesModel::asset(PnlMat *path, double t, double T, int nbTimeSteps,
 
     pnl_vect_rng_normal(gaussian_, size_, rng);
 
+    double time_gap = ((past->n - 1) + 1) * (T / nbTimeSteps) - t;
+    printf("gap = %f \n", time_gap);
+
     for (int underlyingAsset = 0; underlyingAsset < size_; underlyingAsset++)
     {
-
         pnl_mat_get_row(rowChol_, correlationMat_, underlyingAsset);
 
         double volatility = pnl_vect_get(sigma_, underlyingAsset);
 
         double scalar_product = pnl_vect_scalar_prod(rowChol_, gaussian_);
 
-        double time_gap = (T / nbTimeSteps) - (t - ((past->n - 1) * (T / nbTimeSteps)));
-
-        double price_now = pnl_mat_get(past, underlyingAsset, past->n);
+        double price_now = pnl_mat_get(past, underlyingAsset, past->n - 1);
 
         double new_price = price_now * exp((r_ - (volatility * volatility / 2)) * time_gap + (volatility * sqrt(time_gap) * scalar_product));
 
         pnl_mat_set(path, underlyingAsset, past->n - 1, new_price);
     }
 
-    for (int k = past->n; k < nbTimeSteps; k++)
+    for (int k = past->n; k <= nbTimeSteps; k++)
     {
         pnl_vect_rng_normal(gaussian_, size_, rng);
 

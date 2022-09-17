@@ -21,11 +21,10 @@ int main(int argc, char **argv)
     int size, nbTimeStep;
     size_t n_samples;
     std::string type;
-    double price = 4.5;
+    double price = 0;
     double stdev = 1.0;
-    double t = 4.5;
-    double zero = 0.0;
 
+    double zero = 0.0;
 
     char *infile = argv[1];
     Param *P = new Parser(infile);
@@ -43,8 +42,9 @@ int main(int argc, char **argv)
     P->extract("sample number", n_samples);
     P->extract("correlation", correlation);
     P->extract("timestep number", nbTimeStep);
+    double t = T / nbTimeStep;
+    printf("Pas de la subdiv = %f \n", T / nbTimeStep);
 
-    printf("nbTimeStep = %d \n ", nbTimeStep);
     P->extract("payoff coefficients", payoff_coefficients, size);
 
     PnlRng *rng = pnl_rng_create(PNL_RNG_MERSENNE);
@@ -60,7 +60,7 @@ int main(int argc, char **argv)
 
         PnlMat *past = pnl_mat_create_from_zero(size, nbTimeStep + 1);
         blackScholesModel2->asset(past, T, nbTimeStep, rng);
-        pnl_mat_resize(past, size, floor(T/3)+1);
+        pnl_mat_resize(past, size, floor(t * nbTimeStep) + 1);
         monteCarlo1->price(past, t, price, stdev);
         delete (pBasketOption1);
         delete (monteCarlo1);
@@ -68,12 +68,13 @@ int main(int argc, char **argv)
     else if (type == "asian")
     {
         P->extract("strike", strike);
+        printf("Calcul de l'option Asiatique \n");
         AsianOption *pAsianOption1 = new AsianOption(T, nbTimeStep, size, strike, payoff_coefficients);
         MonteCarlo *monteCarlo1 = new MonteCarlo(blackScholesModel1, pAsianOption1, rng, T / nbTimeStep, 50000);
-        
+
         PnlMat *past = pnl_mat_create_from_zero(size, nbTimeStep + 1);
         blackScholesModel2->asset(past, T, nbTimeStep, rng);
-        pnl_mat_resize(past, size, floor(T/3)+1);
+        pnl_mat_resize(past, size, floor(t * nbTimeStep) + 1);
         monteCarlo1->price(past, t, price, stdev);
         delete (pAsianOption1);
         delete (monteCarlo1);
@@ -84,10 +85,10 @@ int main(int argc, char **argv)
         PerformanceOption *pPerfOption1 = new PerformanceOption(T, nbTimeStep, size, payoff_coefficients);
 
         MonteCarlo *monteCarlo1 = new MonteCarlo(blackScholesModel1, pPerfOption1, rng, T / nbTimeStep, 50000);
-        
+
         PnlMat *past = pnl_mat_create_from_zero(size, nbTimeStep + 1);
         blackScholesModel2->asset(past, T, nbTimeStep, rng);
-        pnl_mat_resize(past, size, floor(T/3)+1);
+        pnl_mat_resize(past, size, floor(t * nbTimeStep) + 1);
         monteCarlo1->price(past, t, price, stdev);
         delete (pPerfOption1);
         delete (monteCarlo1);
