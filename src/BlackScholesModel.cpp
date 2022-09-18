@@ -5,6 +5,7 @@
 #include "pnl/pnl_matrix.h"
 #include "BlackScholesModel.hpp"
 #include "assert.h"
+#include <math.h>
 
 /// \brief Modèle de Black Scholes
 
@@ -66,7 +67,7 @@ void BlackScholesModel::asset(PnlMat *path, double t, double T, int nbTimeSteps,
 {
 
     // Initialize path matrix for past values for each underlying asset
-    PnlVect *past_col = pnl_vect_create(past->n);
+    PnlVect *past_col = pnl_vect_create(past->m);
     for (int time_step = 0; time_step < past->n - 1; time_step++)
     {
         pnl_mat_get_col(past_col, past, time_step);
@@ -76,7 +77,6 @@ void BlackScholesModel::asset(PnlMat *path, double t, double T, int nbTimeSteps,
     pnl_vect_rng_normal(gaussian_, size_, rng);
 
     double time_gap = ((past->n - 1) + 1) * (T / nbTimeSteps) - t;
-    printf("gap = %f \n", time_gap);
 
     for (int underlyingAsset = 0; underlyingAsset < size_; underlyingAsset++)
     {
@@ -111,4 +111,23 @@ void BlackScholesModel::asset(PnlMat *path, double t, double T, int nbTimeSteps,
             pnl_mat_set(path, underlyingAsset, k, new_price);
         }
     }
+}
+
+void BlackScholesModel::shiftAsset(PnlMat *shift_path, const PnlMat *path, int d, double h, double t, double timestep)
+{
+    // PnlMat *shift_path_modify = pnl_mat_copy(path);
+    pnl_mat_clone(shift_path, path);
+    // pnl_mat_print(shift_path);
+    double part_entiere;
+    modf(t / timestep, &part_entiere);
+    double i_plus_un = (part_entiere + 1);
+    if (i_plus_un == 1)
+    {
+        i_plus_un = 0;
+    }
+    for (int time_index = i_plus_un; time_index < path->n; time_index++)
+    {
+        pnl_mat_set(shift_path, d, time_index, pnl_mat_get(shift_path, d, time_index) * (1 + h));
+    }
+    // pnl_mat_print(shift_path);
 }

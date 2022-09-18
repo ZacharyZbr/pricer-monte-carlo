@@ -42,8 +42,7 @@ int main(int argc, char **argv)
     P->extract("sample number", n_samples);
     P->extract("correlation", correlation);
     P->extract("timestep number", nbTimeStep);
-    double t = T / nbTimeStep;
-    printf("Pas de la subdiv = %f \n", T / nbTimeStep);
+    double t = T / 2;
 
     P->extract("payoff coefficients", payoff_coefficients, size);
 
@@ -57,11 +56,21 @@ int main(int argc, char **argv)
         BasketOption *pBasketOption1 = new BasketOption(T, nbTimeStep, size, payoff_coefficients, strike);
 
         MonteCarlo *monteCarlo1 = new MonteCarlo(blackScholesModel1, pBasketOption1, rng, T / nbTimeStep, 50000);
+        PnlVect *vect_stdev = pnl_vect_create_from_zero(size);
+        PnlVect *delta1 = pnl_vect_create(size);
 
-        PnlMat *past = pnl_mat_create_from_zero(size, nbTimeStep + 1);
-        blackScholesModel2->asset(past, T, nbTimeStep, rng);
-        pnl_mat_resize(past, size, floor(t * nbTimeStep) + 1);
-        monteCarlo1->price(past, t, price, stdev);
+        monteCarlo1->delta(delta1, vect_stdev);
+        pnl_vect_print(delta1);
+        printf("test shift asset :\n ");
+        // pnl_vect_print(delta1);
+        // PnlMat *past = pnl_mat_create_from_zero(size, nbTimeStep + 1);
+        // blackScholesModel2->asset(past, T, nbTimeStep, rng);
+        // PnlMat *shift_path = pnl_mat_create(past->n, past->m);
+
+        // blackScholesModel2->shiftAsset(shift_path, past, 1, 9, 0, T / nbTimeStep);
+        // pnl_mat_print(shift_path);
+        //  pnl_mat_resize(past, size, floor(t * nbTimeStep) + 1);
+        //  monteCarlo1->price(past, t, price, stdev);
         delete (pBasketOption1);
         delete (monteCarlo1);
     }
@@ -74,6 +83,7 @@ int main(int argc, char **argv)
 
         PnlMat *past = pnl_mat_create_from_zero(size, nbTimeStep + 1);
         blackScholesModel2->asset(past, T, nbTimeStep, rng);
+
         pnl_mat_resize(past, size, floor(t * nbTimeStep) + 1);
         monteCarlo1->price(past, t, price, stdev);
         delete (pAsianOption1);

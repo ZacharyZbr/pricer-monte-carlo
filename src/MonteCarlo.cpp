@@ -2,6 +2,7 @@
 #include "BlackScholesModel.hpp"
 #include "pnl/pnl_random.h"
 #include "MonteCarlo.hpp"
+#include "assert.h"
 
 MonteCarlo::MonteCarlo(BlackScholesModel *mod, Option *opt, PnlRng *rng, double fdStep, long nbSamples)
 {
@@ -95,7 +96,28 @@ void delta(const PnlMat *past, double t, PnlVect *delta, PnlVect *std_dev)
  * @param[out] delta contient le vecteur de delta
  * @param[out] std_dev contient l'écart type de l'estimateur
  */
-void delta(PnlVect *delta, PnlVect *std_dev)
+void MonteCarlo::delta(PnlVect *delta, PnlVect *std_dev)
 {
-    // TODO
+    int nb_assets = opt_->size_;
+    int steps = opt_->nbTimeSteps_;
+
+    for (long sample = 0; sample < nbSamples_; sample++)
+    {
+        PnlMat *pMatrix = pnl_mat_create_from_zero(nb_assets, steps + 1);
+        mod_->asset(pMatrix, opt_->T_, steps, rng_);
+
+        for (int d = 0; d < opt_->size_; d++)
+        {
+            PnlMat *shiftedMatrixPlus = pnl_mat_create_from_zero(nb_assets, steps + 1);
+            mod_->shiftAsset(shiftedMatrixPlus, pMatrix, d, 1, 0, opt_->T_ / opt_->nbTimeSteps_);
+            PnlMat *shiftedMatrixMinus = pnl_mat_create_from_zero(nb_assets, steps + 1);
+            mod_->shiftAsset(shiftedMatrixMinus, pMatrix, d, -1, 0, opt_->T_ / opt_->nbTimeSteps_);
+            delta->array[d] += (opt_->payoff(shiftedMatrixPlus) - opt_->payoff(shiftedMatrixMinus)) / mod_->spot_->array[d];
+            pnl_mat_free(&shiftedMatrixMinus);
+            pnl_mat_free(&shiftedMatrixPlus);
+        }
+        pnl_mat_free(&pMatrix);
+    }
+    double facteur_mult = exp(-mod_->r_ * opt_->T_) / (nbSamples_ * 2);
+    pnl_vect_mult_scalar(delta, facteur_mult);
 }
