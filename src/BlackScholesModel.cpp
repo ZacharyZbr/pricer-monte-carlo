@@ -74,7 +74,7 @@ void BlackScholesModel::asset(PnlMat *path, double t, double T, int nbTimeSteps,
 
     pnl_vect_rng_normal(gaussian_, size_, rng);
 
-    double time_gap = ((past->n - 1) + 1) * (T / nbTimeSteps) - t;
+    double time_gap = -(((past->n - 1) ) * (T / nbTimeSteps) - t);
 
     for (int underlyingAsset = 0; underlyingAsset < size_; underlyingAsset++)
     {

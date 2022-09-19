@@ -42,7 +42,7 @@ int main(int argc, char **argv)
     P->extract("sample number", n_samples);
     P->extract("correlation", correlation);
     P->extract("timestep number", nbTimeStep);
-    double t = 0;
+    double t = 0.12;
 
     P->extract("payoff coefficients", payoff_coefficients, size);
     PnlVect *vect_stdev = pnl_vect_create_from_zero(size);
@@ -64,8 +64,10 @@ int main(int argc, char **argv)
         PnlMat *past = pnl_mat_create_from_zero(size, nbTimeStep + 1);
         blackScholesModel2->asset(past, T, nbTimeStep, rng);
         pnl_mat_resize(past, size, floor(t * nbTimeStep) + 1);
+        pnl_mat_set_col(past, spot, 0);
         // PnlMat *shift_path = pnl_mat_create(past->n, past->m);
         monteCarlo1->delta(past, t, delta1,vect_stdev);
+        //monteCarlo1->delta(delta1, vect_stdev);
         pnl_vect_print(delta1);
         // blackScholesModel2->shiftAsset(shift_path, past, 1, 9, 0, T / nbTimeStep);
         // pnl_mat_print(shift_path);
