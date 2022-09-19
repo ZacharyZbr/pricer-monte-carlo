@@ -26,6 +26,15 @@ public:
   void price(double &prix, double &std_dev);
 
   /**
+   * Calcule le prix de l'option à la date 0 avec une boucle parallèle
+   *
+   * @param[out] prix valeur de l'estimateur Monte Carlo
+   * @param[out] ic écart type de l'estimateur
+   */
+  void parallelprice(double &prix, double &std_dev);
+
+
+  /**
    * Calcule le prix de l'option à la date t
    *
    * @param[in]  past contient la trajectoire du sous-jacent
@@ -55,4 +64,13 @@ public:
    * @param[out] std_dev contient l'écart type de l'estimateur
    */
   void delta(PnlVect *delta, PnlVect *std_dev);
+
+  /**
+   * Calcule le delta de l'option à la date en parallèle
+   *
+   * @param[in] t date à laquelle le calcul est fait
+   * @param[out] delta contient le vecteur de delta
+   * @param[out] std_dev contient l'écart type de l'estimateur
+   */
+  void paralleldelta(PnlVect *delta, PnlVect *std_dev);
 };

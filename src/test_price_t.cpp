@@ -12,6 +12,7 @@
 #include "jlparser/parser.hpp"
 #include "pnl/pnl_matrix.h"
 #include "Option.hpp"
+#include <chrono>
 
 int main(int argc, char **argv)
 {
@@ -66,13 +67,27 @@ int main(int argc, char **argv)
         pnl_mat_resize(past, size, floor(t * nbTimeStep) + 1);
         pnl_mat_set_col(past, spot, 0);
         // PnlMat *shift_path = pnl_mat_create(past->n, past->m);
-        monteCarlo1->delta(past, t, delta1,vect_stdev);
+        //monteCarlo1->delta(past, t, delta1,vect_stdev);
         //monteCarlo1->delta(delta1, vect_stdev);
-        pnl_vect_print(delta1);
+        // pnl_vect_print(delta1);
         // blackScholesModel2->shiftAsset(shift_path, past, 1, 9, 0, T / nbTimeStep);
         // pnl_mat_print(shift_path);
         //  pnl_mat_resize(past, size, floor(t * nbTimeStep) + 1);
         //  monteCarlo1->price(past, t, price, stdev);
+        
+        auto startP = std::chrono::high_resolution_clock::now();
+        monteCarlo1->paralleldelta(delta1, vect_stdev);
+        auto finishP = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsedP = finishP - startP;
+        std::cout << "Time for parallel loop : " << elapsedP.count() << std::endl;
+
+        auto start = std::chrono::high_resolution_clock::now();
+        monteCarlo1->delta(delta1, vect_stdev);
+        auto finish = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsed = finish - start;
+        std::cout << "Time for normal loop : " << elapsed.count() << std::endl;
+
+        //pnl_vect_print(delta1);
         delete (pBasketOption1);
         delete (monteCarlo1);
     }

@@ -3,6 +3,7 @@
 #include "pnl/pnl_random.h"
 #include "MonteCarlo.hpp"
 #include "assert.h"
+#include <omp.h>
 
 MonteCarlo::MonteCarlo(BlackScholesModel *mod, Option *opt, PnlRng *rng, double fdStep, long nbSamples)
 {
@@ -42,6 +43,37 @@ void MonteCarlo::price(double &prix, double &std_dev)
     double ksiSquared = exp(-2 * mod_->r_ * opt_->T_) * (meanPayoffSquared / nbSamples_ - ((meanPayoff / nbSamples_) * (meanPayoff / nbSamples_)));
     std_dev = sqrt(ksiSquared / nbSamples_);
 }
+
+/**
+ * Calcule le prix de l'option à la date 0 avec une boucle parallèle
+ *
+ * @param[out] prix valeur de l'estimateur Monte Carlo
+ * @param[out] ic écart type de l'estimateur
+ */
+void MonteCarlo::parallelprice(double &prix, double &std_dev)
+{
+    double meanPayoff = 0;
+    double meanPayoffSquared = 0;
+    int nb_assets = opt_->size_;
+    int steps = opt_->nbTimeSteps_;
+
+
+    for (long sample = 0; sample < nbSamples_; sample++)
+    {
+
+        PnlMat *pMatrix = pnl_mat_create_from_zero(nb_assets, steps + 1);
+        mod_->asset(pMatrix, opt_->T_, steps, rng_);
+
+        meanPayoff += opt_->payoff(pMatrix);
+        meanPayoffSquared += opt_->payoff(pMatrix) * opt_->payoff(pMatrix);
+        pnl_mat_free(&pMatrix);
+    }
+    prix = exp(-mod_->r_ * opt_->T_) * meanPayoff / nbSamples_;
+    double ksiSquared = exp(-2 * mod_->r_ * opt_->T_) * (meanPayoffSquared / nbSamples_ - ((meanPayoff / nbSamples_) * (meanPayoff / nbSamples_)));
+    std_dev = sqrt(ksiSquared / nbSamples_);
+}
+
+
 
 /**
  * Calcule le prix de l'option à la date t
@@ -140,6 +172,48 @@ void MonteCarlo::delta(PnlVect *delta, PnlVect *std_dev)
             pnl_mat_free(&shiftedMatrixMinus);
             pnl_mat_free(&shiftedMatrixPlus);
         }
+        pnl_mat_free(&pMatrix);
+        
+
+    }
+
+    for (int d = 0; d < opt_->size_; d++){
+        double ksi_carre = exp(-2 * mod_->r_* opt_->T_) * 1/nbSamples_ * pnl_vect_get(meanPayoffSquared, d) - (delta->array[d]/nbSamples_)*(delta->array[d]/nbSamples_) * exp(-2 * mod_->r_* opt_->T_);
+        pnl_vect_set(std_dev, d, sqrt(ksi_carre/nbSamples_));
+    }
+
+    double facteur_mult = exp(-mod_->r_ * opt_->T_) / (nbSamples_ * 2 * 0.1);
+    pnl_vect_mult_scalar(delta, facteur_mult);
+}
+
+void MonteCarlo::paralleldelta(PnlVect *delta, PnlVect *std_dev)
+{
+    int nb_assets = opt_->size_;
+    int steps = opt_->nbTimeSteps_;
+    
+    PnlVect *meanPayoffSquared = pnl_vect_create(std_dev->size);
+
+    for (long sample = 0; sample < nbSamples_; sample++)
+    {
+        PnlMat *pMatrix = pnl_mat_create_from_zero(nb_assets, steps + 1);
+        mod_->assetP(pMatrix, opt_->T_, steps, rng_);
+        int d;
+
+        //#pragma omp parallel shared(pMatrix) private(d)
+        //{
+        //#pragma omp parallel for
+        for (int d = 0; d < opt_->size_; d++)
+        {
+            PnlMat *shiftedMatrixPlus = pnl_mat_create_from_zero(nb_assets, steps + 1);
+            mod_->shiftAsset(shiftedMatrixPlus, pMatrix, d, 0.1, 0, opt_->T_ / opt_->nbTimeSteps_);
+            PnlMat *shiftedMatrixMinus = pnl_mat_create_from_zero(nb_assets, steps + 1);
+            mod_->shiftAsset(shiftedMatrixMinus, pMatrix, d, -0.1, 0, opt_->T_ / opt_->nbTimeSteps_);
+            delta->array[d] += (opt_->payoff(shiftedMatrixPlus) - opt_->payoff(shiftedMatrixMinus)) / mod_->spot_->array[d];
+            pnl_vect_set(meanPayoffSquared, d, pnl_vect_get(meanPayoffSquared, d) + delta->array[d]*delta->array[d]); 
+            pnl_mat_free(&shiftedMatrixMinus);
+            pnl_mat_free(&shiftedMatrixPlus);
+        }
+        //}
         pnl_mat_free(&pMatrix);
         
 
