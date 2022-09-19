@@ -4,8 +4,6 @@
 #include "pnl/pnl_vector.h"
 #include "pnl/pnl_matrix.h"
 #include "BlackScholesModel.hpp"
-#include "assert.h"
-#include <math.h>
 
 /// \brief Modèle de Black Scholes
 
@@ -41,7 +39,7 @@ BlackScholesModel::~BlackScholesModel()
 void BlackScholesModel::asset(PnlMat *path, double T, int nbTimeSteps, PnlRng *rng)
 {
 
-    pnl_mat_set_col(path, spot_, 0);
+    pnl_mat_set_col(path, spot_, 0); 
 
     for (int k = 1; k <= nbTimeSteps; k++)
     {
@@ -115,9 +113,7 @@ void BlackScholesModel::asset(PnlMat *path, double t, double T, int nbTimeSteps,
 
 void BlackScholesModel::shiftAsset(PnlMat *shift_path, const PnlMat *path, int d, double h, double t, double timestep)
 {
-    // PnlMat *shift_path_modify = pnl_mat_copy(path);
     pnl_mat_clone(shift_path, path);
-    // pnl_mat_print(shift_path);
     double part_entiere;
     modf(t / timestep, &part_entiere);
     double i_plus_un = (part_entiere + 1);
@@ -129,5 +125,4 @@ void BlackScholesModel::shiftAsset(PnlMat *shift_path, const PnlMat *path, int d
     {
         pnl_mat_set(shift_path, d, time_index, pnl_mat_get(shift_path, d, time_index) * (1 + h));
     }
-    // pnl_mat_print(shift_path);
 }
