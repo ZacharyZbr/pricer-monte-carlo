@@ -73,4 +73,6 @@ public:
    * @param[out] std_dev contient l'écart type de l'estimateur
    */
   void paralleldelta(PnlVect *delta, PnlVect *std_dev);
+
+  void PL(const PnlMat *matriceTot, double &PL);
 };

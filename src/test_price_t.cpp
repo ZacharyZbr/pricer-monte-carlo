@@ -75,17 +75,25 @@ int main(int argc, char **argv)
         //  pnl_mat_resize(past, size, floor(t * nbTimeStep) + 1);
         //  monteCarlo1->price(past, t, price, stdev);
         
-        auto startP = std::chrono::high_resolution_clock::now();
-        monteCarlo1->paralleldelta(delta1, vect_stdev);
-        auto finishP = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> elapsedP = finishP - startP;
-        std::cout << "Time for parallel loop : " << elapsedP.count() << std::endl;
+        // auto startP = std::chrono::high_resolution_clock::now();
+        // monteCarlo1->paralleldelta(delta1, vect_stdev);
+        // auto finishP = std::chrono::high_resolution_clock::now();
+        // std::chrono::duration<double> elapsedP = finishP - startP;
+        // std::cout << "Time for parallel loop : " << elapsedP.count() << std::endl;
 
-        auto start = std::chrono::high_resolution_clock::now();
-        monteCarlo1->delta(delta1, vect_stdev);
-        auto finish = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> elapsed = finish - start;
-        std::cout << "Time for normal loop : " << elapsed.count() << std::endl;
+        // auto start = std::chrono::high_resolution_clock::now();
+        // //monteCarlo1->delta(past, t, delta1, vect_stdev);
+        // auto finish = std::chrono::high_resolution_clock::now();
+        // std::chrono::duration<double> elapsed = finish - start;
+        // std::cout << "Time for normal loop : " << elapsed.count() << std::endl;
+        // pnl_vect_print(delta1);
+        // pnl_vect_print(vect_stdev);
+        double PL1 = 0;
+        int H = 3;
+        PnlMat *matTot = pnl_mat_create_from_zero(size, H+1);
+        blackScholesModel2->asset(matTot, T, nbTimeStep, rng);
+        monteCarlo1->PL(matTot, PL1);
+        printf(" portf = %f\n", PL1);
 
         //pnl_vect_print(delta1);
         delete (pBasketOption1);
@@ -110,6 +118,7 @@ int main(int argc, char **argv)
         //monteCarlo1->delta(past, t, deltaT, vect_stdev);
         monteCarlo1->delta(deltaT, vect_stdev);
         pnl_vect_print(deltaT);
+        pnl_vect_print(vect_stdev);
         delete (pAsianOption1);
         delete (monteCarlo1);
     }
