@@ -13,6 +13,9 @@
 #include "pnl/pnl_matrix.h"
 #include "Option.hpp"
 #include <chrono>
+#include "PricingResults.hpp"
+
+using namespace std;
 
 int main(int argc, char **argv)
 {
@@ -64,20 +67,20 @@ int main(int argc, char **argv)
         PnlVect *delta1 = pnl_vect_create_from_zero(size);
         PnlVect *delta2 = pnl_vect_create_from_zero(size);
 
-        // monteCarlo1->price(price, stdev);
+        monteCarlo1->price(price, stdev);
         // pnl_vect_print(delta1);
         PnlMat *past = pnl_mat_create_from_zero(size, nbTimeStep + 1);
-        blackScholesModel2->asset(past, T, nbTimeStep, rng);
-        pnl_mat_resize(past, size, floor(t * nbTimeStep) + 1);
-        pnl_mat_set_col(past, spot, 0);
-        PnlMat *shift_path = pnl_mat_create(past->n, past->m);
+        // blackScholesModel2->asset(past, T, nbTimeStep, rng);
+        // pnl_mat_resize(past, size, floor(t * nbTimeStep) + 1);
+        // pnl_mat_set_col(past, spot, 0);
+         PnlMat *shift_path = pnl_mat_create(past->n, past->m);
         // monteCarlo1->delta(past, t, delta1, vect_stdev);
-        //  monteCarlo1->delta(delta1, vect_stdev);
+         monteCarlo1->delta(delta1, vect_stdev1);
         //  pnl_vect_print(delta1);
         //  blackScholesModel2->shiftAsset(shift_path, past, 1, 9, 0, T / nbTimeStep);
         //  pnl_mat_print(shift_path);
         //  pnl_mat_resize(past, size, floor(t * nbTimeStep) + 1);
-        monteCarlo1->price(past, t, price, stdev);
+        // monteCarlo1->price(past, t, price, stdev);
 
         // auto startP = std::chrono::high_resolution_clock::now();
         // monteCarlo1->paralleldelta(delta1, vect_stdev1);
@@ -91,9 +94,9 @@ int main(int argc, char **argv)
         auto start = std::chrono::high_resolution_clock::now();
         monteCarlo1->delta(delta2, vect_stdev2);
         auto finish = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> elapsed = finish - start;
-        std::cout << "Time for normal loop : " << elapsed.count() << std::endl;
-        pnl_vect_print(delta2);
+        //std::chrono::duration<double> elapsed = finish - start;
+        //std::cout << "Time for normal loop : " << elapsed.count() << std::endl;
+        //pnl_vect_print(delta2);
         // // pnl_vect_print(vect_stdev);
         //  double PL1 = 0;
         //  int H = 3;
@@ -102,6 +105,8 @@ int main(int argc, char **argv)
         //  monteCarlo1->PL(matTot, PL1);
         //  printf(" portf = %f\n", PL1);
 
+        PricingResults res = PricingResults(price, stdev, delta1, vect_stdev1);
+        cout << res << endl;
         // pnl_vect_print(delta1);
         pnl_vect_free(&vect_stdev1); 
         pnl_vect_free(&vect_stdev2); 
@@ -116,7 +121,7 @@ int main(int argc, char **argv)
     {
         P->extract("strike", strike);
         PnlVect *deltaT = pnl_vect_create(size);
-        printf("Calcul de l'option Asiatique \n");
+        //printf("Calcul de l'option Asiatique \n");
         AsianOption *pAsianOption1 = new AsianOption(T, nbTimeStep, size, strike, payoff_coefficients);
         MonteCarlo *monteCarlo1 = new MonteCarlo(blackScholesModel1, pAsianOption1, rng, T / nbTimeStep, n_samples);
 
@@ -130,8 +135,13 @@ int main(int argc, char **argv)
         //  printf("Liste des deltats en t:\n");
         // monteCarlo1->delta(past, t, deltaT, vect_stdev);
         monteCarlo1->delta(deltaT, vect_stdev);
-        pnl_vect_print(deltaT);
-        pnl_vect_print(vect_stdev);
+        // pnl_vect_print(deltaT);
+        // pnl_vect_print(vect_stdev);
+
+        PricingResults res = PricingResults(price, stdev, deltaT, vect_stdev);
+        cout << res << endl;
+
+
         delete (pAsianOption1);
         delete (monteCarlo1);
     }
@@ -148,7 +158,10 @@ int main(int argc, char **argv)
         monteCarlo1->price(past, t, price, stdev);
         PnlVect *deltaT = pnl_vect_create(size);
         monteCarlo1->delta(deltaT, vect_stdev);
-        pnl_vect_print(deltaT);
+        // pnl_vect_print(deltaT);
+        PricingResults res = PricingResults(price, stdev, deltaT, vect_stdev);
+        cout << res << endl;
+
         delete (pPerfOption1);
         delete (monteCarlo1);
     }
@@ -159,7 +172,7 @@ int main(int argc, char **argv)
     delete (P);
     pnl_rng_free(&rng);
     pnl_vect_free(&vect_stdev);
-    std::cout << "le prix de l'option " << type << " est " << price << std::endl;
+    //std::cout << "le prix de l'option " << type << " est " << price << std::endl;
     // std::cout << "largeur de l'intervalle " << type << " est " << stdev << std::endl;
 
     return 0;
