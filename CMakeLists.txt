@@ -51,8 +51,10 @@ add_executable(mc-example src/mc_example.cpp src/BlackScholesModel.cpp src/Baske
 target_link_libraries(mc-example jl_parser ${LIBS})
 
 
+
 add_executable(price0 src/test_price_t.cpp src/BlackScholesModel.cpp src/BasketOption.cpp src/MonteCarlo.cpp src/AsianOption.cpp src/PerformanceOption.cpp src/PnlVectToJson.cpp src/PricingResults.cpp)
 target_link_libraries(price0 jl_parser ${LIBS})
+
 
 # Print compiler flags
 get_directory_property(DirDefs COMPILE_DEFINITIONS)
