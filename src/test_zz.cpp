@@ -83,8 +83,8 @@ int main(int argc, char **argv)
     pnl_vect_free(&divid);
     pnl_vect_free(&payoff_coefficients);
     pnl_rng_free(&rng);
-    std::cout << "le prix de l'option " << type << " est " << price << std::endl;
-    std::cout << "largeur de l'intervalle " << type << " est " << stdev << std::endl;
+    // std::cout << "le prix de l'option " << type << " est " << price << std::endl;
+    // std::cout << "largeur de l'intervalle " << type << " est " << stdev << std::endl;
 
     return 0;
 }

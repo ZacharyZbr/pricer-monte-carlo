@@ -77,6 +77,7 @@ int main(int argc, char **argv)
         // monteCarlo1->delta(past, t, delta1, vect_stdev);
          monteCarlo1->delta(delta1, vect_stdev1);
         //  pnl_vect_print(delta1);
+        //  pnl_vect_print(vect_stdev1);
         //  blackScholesModel2->shiftAsset(shift_path, past, 1, 9, 0, T / nbTimeStep);
         //  pnl_mat_print(shift_path);
         //  pnl_mat_resize(past, size, floor(t * nbTimeStep) + 1);
@@ -98,7 +99,7 @@ int main(int argc, char **argv)
         //std::cout << "Time for normal loop : " << elapsed.count() << std::endl;
         //pnl_vect_print(delta2);
         // // pnl_vect_print(vect_stdev);
-        //  double PL1 = 0;
+        // double PL1 = 0;
         //  int H = 3;
         //  PnlMat *matTot = pnl_mat_create_from_zero(size, H+1);
         //  blackScholesModel2->asset(matTot, T, nbTimeStep, rng);
