@@ -219,15 +219,12 @@ void MonteCarlo::PL(const PnlMat *matriceTot, double &PL)
     delta(delta1, vect_stdDev);
     price(price1, std_dev);
     PL = price1 - pnl_vect_scalar_prod(delta1, mod_->spot_);
-
     int rebal = pas/(opt_->T_/opt_->nbTimeSteps_);
     PnlMat *past = pnl_mat_create_from_zero(opt_->size_, 1);
     PnlVect *column = pnl_vect_create(opt_->size_);
     pnl_mat_get_row(column, matriceTot, 0);
-    pnl_vect_print(column);
-    pnl_mat_print(matriceTot);
     PnlMat *pastTrans = pnl_mat_transpose(past);
-    pnl_mat_set_row(pastTrans, column, 0);
+    pnl_mat_set_row(pastTrans, column, 0); 
     past = pnl_mat_transpose(pastTrans);
     for(double k=pas; k<opt_->T_; k+= pas)
     {
