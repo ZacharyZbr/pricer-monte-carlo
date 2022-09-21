@@ -126,18 +126,8 @@ int main(int argc, char **argv)
         AsianOption *pAsianOption1 = new AsianOption(T, nbTimeStep, size, strike, payoff_coefficients);
         MonteCarlo *monteCarlo1 = new MonteCarlo(blackScholesModel1, pAsianOption1, rng, T / nbTimeStep, n_samples);
 
-        // PnlMat *past = pnl_mat_create_from_zero(size, nbTimeStep + 1);
-        // blackScholesModel2->asset(past, T, nbTimeStep, rng);
-
-        // pnl_mat_resize(past, size, floor(t * nbTimeStep) + 1);
         monteCarlo1->price(price, stdev);
-        // monteCarlo1->price(past, t, price, stdev);
-        //  printf("Le prix est : %f\n", price);
-        //  printf("Liste des deltats en t:\n");
-        // monteCarlo1->delta(past, t, deltaT, vect_stdev);
         monteCarlo1->delta(deltaT, vect_stdev);
-        // pnl_vect_print(deltaT);
-        // pnl_vect_print(vect_stdev);
 
         PricingResults res = PricingResults(price, stdev, deltaT, vect_stdev);
         cout << res << endl;
@@ -159,7 +149,7 @@ int main(int argc, char **argv)
         monteCarlo1->price(past, t, price, stdev);
         PnlVect *deltaT = pnl_vect_create(size);
         monteCarlo1->delta(deltaT, vect_stdev);
-        // pnl_vect_print(deltaT);
+        
         PricingResults res = PricingResults(price, stdev, deltaT, vect_stdev);
         cout << res << endl;
 
