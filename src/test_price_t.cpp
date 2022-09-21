@@ -75,7 +75,7 @@ int main(int argc, char **argv)
         // pnl_mat_set_col(past, spot, 0);
          PnlMat *shift_path = pnl_mat_create(past->n, past->m);
         // monteCarlo1->delta(past, t, delta1, vect_stdev);
-         monteCarlo1->delta(delta1, vect_stdev1);
+        monteCarlo1->delta(delta1, vect_stdev1);
         //  pnl_vect_print(delta1);
         //  pnl_vect_print(vect_stdev1);
         //  blackScholesModel2->shiftAsset(shift_path, past, 1, 9, 0, T / nbTimeStep);

@@ -26,21 +26,16 @@ double AsianOption::payoff(const PnlMat *path)
 {
 
     double payoff = 0;
-
-    for (int d = 0; d < size_; d++)
-    {
-        double lambda = pnl_vect_get(coefficients_, d);
-        lambda /= (nbTimeSteps_ + 1);
-        double sum = 0;
-        for (int i = 0; i <= nbTimeSteps_; i++)
-        {
-
-            // TODO
-            sum += pnl_mat_get(path, d, i);
-            // sum += path->array[i + d * nbTimeSteps_]; // path->array[d][i];
-        }
-        payoff += lambda * sum;
-    }
+    char c = 'c';
+    PnlMat *path_clone = pnl_mat_create(path->n - 1, path->m -1);
+    pnl_mat_clone(path_clone, path);
+    pnl_mat_cumsum(path_clone, c);
+    PnlVect *col = pnl_vect_create(size_);
+    pnl_mat_get_col(col, path_clone, path_clone->n - 1);
+    double coeff = (nbTimeSteps_ + 1);
+    payoff = pnl_vect_scalar_prod(col , coefficients_) / coeff;
+    pnl_mat_free(&path_clone);
+    pnl_vect_free(&col);
     if (payoff > strike_)
     {
         return payoff - strike_;

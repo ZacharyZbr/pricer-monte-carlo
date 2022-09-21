@@ -211,6 +211,7 @@ void MonteCarlo::delta(PnlVect *delta, PnlVect *std_dev)
 
 void MonteCarlo::PL(const PnlMat *matriceTot, double &PL)
 {
+    
     double pas = opt_->T_ / matriceTot->m;
     PnlVect *delta1 = pnl_vect_create(opt_->size_);
     PnlVect *vect_stdDev = pnl_vect_create(opt_->size_);
@@ -219,17 +220,15 @@ void MonteCarlo::PL(const PnlMat *matriceTot, double &PL)
     delta(delta1, vect_stdDev);
     price(price1, std_dev);
     PL = price1 - pnl_vect_scalar_prod(delta1, mod_->spot_);
-    int rebal = pas/(opt_->T_/opt_->nbTimeSteps_);
     PnlMat *past = pnl_mat_create_from_zero(opt_->size_, 1);
     PnlVect *column = pnl_vect_create(opt_->size_);
     pnl_mat_get_row(column, matriceTot, 0);
     PnlMat *pastTrans = pnl_mat_transpose(past);
     pnl_mat_set_row(pastTrans, column, 0); 
     past = pnl_mat_transpose(pastTrans);
+    // 2sec
     for(double k=pas; k<opt_->T_; k+= pas)
-    {
-        auto start = std::chrono::high_resolution_clock::now();
-        
+    { 
         if (((int)k%(int)(opt_->T_/opt_->nbTimeSteps_))==0)
         {   
             for(int i=1; i<=k/(opt_->T_/opt_->nbTimeSteps_) ;i++)
