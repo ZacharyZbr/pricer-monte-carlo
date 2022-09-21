@@ -4,6 +4,9 @@
 #include "MonteCarlo.hpp"
 #include "assert.h"
 #include <omp.h>
+#include <ostream>
+#include <chrono>
+#include <iostream>
 
 MonteCarlo::MonteCarlo(BlackScholesModel *mod, Option *opt, PnlRng *rng, double fdStep, long nbSamples)
 {
@@ -131,10 +134,14 @@ void MonteCarlo::delta(const PnlMat *past, double t, PnlVect *delta, PnlVect *st
             mod_->shiftAsset(shiftedMatrixPlus, pMatrix, d, fdStep_, t, opt_->T_ / opt_->nbTimeSteps_);
 
             mod_->shiftAsset(shiftedMatrixMinus, pMatrix, d, -fdStep_, t, opt_->T_ / opt_->nbTimeSteps_);
+            //sum += (opt_->payoff(shiftedMatrixPlus) - opt_->payoff(shiftedMatrixMinus)) / pnl_mat_get(past, d, past->n - 1);
+            //sumSquarred += (opt_->payoff(shiftedMatrixPlus) - opt_->payoff(shiftedMatrixMinus))*(opt_->payoff(shiftedMatrixPlus) - opt_->payoff(shiftedMatrixMinus));
             delta->array[d] += (opt_->payoff(shiftedMatrixPlus) - opt_->payoff(shiftedMatrixMinus)) / pnl_mat_get(past, d, past->n - 1);
             delta_sans_s0->array[d] += (opt_->payoff(shiftedMatrixPlus) - opt_->payoff(shiftedMatrixMinus));
             meanPayoffSquared->array[d] += (opt_->payoff(shiftedMatrixPlus) - opt_->payoff(shiftedMatrixMinus)) * (opt_->payoff(shiftedMatrixPlus) - opt_->payoff(shiftedMatrixMinus));
         }
+        //delta->array[d] = sum;
+        //meanPayoffSquared->array[d] = sumSquarred;
         pnl_mat_free(&shiftedMatrixMinus);
         pnl_mat_free(&shiftedMatrixPlus);
         pnl_mat_free(&pMatrix);
@@ -149,6 +156,7 @@ void MonteCarlo::delta(const PnlMat *past, double t, PnlVect *delta, PnlVect *st
     double facteur_mult = exp(-mod_->r_ * (opt_->T_ - t)) / (nbSamples_ * 2 * 0.1);
     pnl_vect_mult_scalar(delta, facteur_mult);
 }
+
 /*
  * @param[in] t date à laquelle le calcul est fait
  * @param[out] delta contient le vecteur de delta
@@ -189,8 +197,9 @@ void MonteCarlo::delta(PnlVect *delta, PnlVect *std_dev)
     pnl_mat_free(&shiftedMatrixPlus);
     for (int d = 0; d < opt_->size_; d++)
     {
-        double delta_d = pnl_vect_get(delta, d);
-        double ksi_carre = ((exp(-2 * mod_->r_ * opt_->T_)) / (0.1 * 0.1 * 2 * 2 * mod_->spot_->array[d] * mod_->spot_->array[d])) * (((pnl_vect_get(meanPayoffSquared, d))/ nbSamples_) - (((delta_sans_s0->array[d]) / nbSamples_) * ((delta_sans_s0->array[d]) / nbSamples_)));
+        double delta_d = pnl_vect_get(delta_sans_s0, d);
+        double spot_d = pnl_vect_get(mod_->spot_, d);
+        double ksi_carre = ((exp(-2 * mod_->r_ * opt_->T_)) / (0.1 * 0.1 * 2 * 2 * spot_d * spot_d)) * (((pnl_vect_get(meanPayoffSquared, d))/ nbSamples_) - (((delta_d) / nbSamples_) * ((delta_d) / nbSamples_)));
         pnl_vect_set(std_dev, d, sqrt(ksi_carre / nbSamples_));
     }
 
@@ -198,51 +207,6 @@ void MonteCarlo::delta(PnlVect *delta, PnlVect *std_dev)
     pnl_vect_mult_scalar(delta, facteur_mult);
     pnl_vect_free(&meanPayoffSquared);
     pnl_vect_free(&delta_sans_s0);
-}
-
-void MonteCarlo::paralleldelta(PnlVect *delta, PnlVect *std_dev)
-{
-    int nb_assets = opt_->size_;
-    int steps = opt_->nbTimeSteps_;
-
-    PnlVect *meanPayoffSquared = pnl_vect_create(std_dev->size);
-    PnlMat *shiftedMatrixMinus = pnl_mat_create(nb_assets, steps + 1);
-    PnlMat *shiftedMatrixPlus = pnl_mat_create(nb_assets, steps + 1);
-    PnlMat *pMatrix = pnl_mat_create(nb_assets, steps + 1);
-
-    for (long sample = 0; sample < nbSamples_; sample++)
-    {
-
-        mod_->assetP(pMatrix, opt_->T_, steps, rng_);
-        int d;
-
-        //#pragma omp parallel shared(pMatrix) private(d)
-        //{
-        //#pragma omp parallel for
-        for (int d = 0; d < opt_->size_; d++)
-        {
-
-            mod_->shiftAsset(shiftedMatrixPlus, pMatrix, d, 0.1, 0, opt_->T_ / opt_->nbTimeSteps_);
-            mod_->shiftAsset(shiftedMatrixMinus, pMatrix, d, -0.1, 0, opt_->T_ / opt_->nbTimeSteps_);
-            delta->array[d] += (opt_->payoff(shiftedMatrixPlus) - opt_->payoff(shiftedMatrixMinus)) / pnl_vect_get(mod_->spot_, d);
-            double delta_d = pnl_vect_get(delta, d);
-            pnl_vect_set(meanPayoffSquared, d, pnl_vect_get(meanPayoffSquared, d) + delta_d * delta_d);
-        }
-        //}
-    }
-    pnl_mat_free(&shiftedMatrixMinus);
-    pnl_mat_free(&shiftedMatrixPlus);
-    pnl_mat_free(&pMatrix);
-
-    for (int d = 0; d < opt_->size_; d++)
-    {
-        double delta_d = pnl_vect_get(delta, d);
-        double ksi_carre = (1 / (0.1 * 0.1 * 2 * 2)) * (exp(-2 * mod_->r_ * opt_->T_) * 1 / nbSamples_ * pnl_vect_get(meanPayoffSquared, d) - (delta_d / nbSamples_) * (delta_d / nbSamples_) * exp(-2 * mod_->r_ * opt_->T_));
-        pnl_vect_set(std_dev, d, sqrt(ksi_carre / nbSamples_));
-    }
-
-    double facteur_mult = exp(-mod_->r_ * opt_->T_) / (nbSamples_ * 2 * 0.1);
-    pnl_vect_mult_scalar(delta, facteur_mult);
 }
 
 void MonteCarlo::PL(const PnlMat *matriceTot, double &PL)
@@ -255,19 +219,42 @@ void MonteCarlo::PL(const PnlMat *matriceTot, double &PL)
     delta(delta1, vect_stdDev);
     price(price1, std_dev);
     PL = price1 - pnl_vect_scalar_prod(delta1, mod_->spot_);
-    for (double k = pas; k < opt_->T_; k += pas)
+
+    int rebal = pas/(opt_->T_/opt_->nbTimeSteps_);
+    PnlMat *past = pnl_mat_create_from_zero(opt_->size_, 1);
+    PnlVect *column = pnl_vect_create(opt_->size_);
+    pnl_mat_get_row(column, matriceTot, 0);
+    pnl_vect_print(column);
+    pnl_mat_print(matriceTot);
+    PnlMat *pastTrans = pnl_mat_transpose(past);
+    pnl_mat_set_row(pastTrans, column, 0);
+    past = pnl_mat_transpose(pastTrans);
+    for(double k=pas; k<opt_->T_; k+= pas)
     {
+        auto start = std::chrono::high_resolution_clock::now();
+        
+        if (((int)k%(int)(opt_->T_/opt_->nbTimeSteps_))==0)
+        {   
+            for(int i=1; i<=k/(opt_->T_/opt_->nbTimeSteps_) ;i++)
+            {
+                PnlVect *column = pnl_vect_create(opt_->size_);
+                pnl_mat_get_row(column, matriceTot, i);
+                pnl_mat_sq_transpose(past);
+                pnl_mat_add_row(past, i, column);
+                pnl_mat_sq_transpose(past);
+            }
+        }
         PnlVect *deltaMoins = pnl_vect_create(opt_->size_);
         PnlVect *deltaPlus = pnl_vect_create(opt_->size_);
-        PnlMat *past = pnl_mat_create_from_zero(opt_->size_, floor(opt_->nbTimeSteps_ + 1));
-        pnl_mat_clone(past, matriceTot);
-        pnl_mat_resize(past, opt_->size_, floor(k / pas) + 1);
-        delta(past, k - pas, deltaMoins, vect_stdDev);
+        
+        delta(past, k-pas, deltaMoins, vect_stdDev);
         delta(past, k, deltaPlus, vect_stdDev);
         pnl_vect_minus_vect(deltaPlus, deltaMoins);
         PnlVect *col = pnl_vect_create(opt_->size_);
         pnl_mat_get_col(col, past, past->n - 1);
         PL = PL * exp((mod_->r_ * opt_->T_) / matriceTot->m) - pnl_vect_scalar_prod(deltaPlus, col);
         printf(" PL boucle : %f\n", PL);
+        printf("boucle numero : %f\n", k);
+        
     }
 }

@@ -13,10 +13,10 @@
 #include "pnl/pnl_matrix.h"
 #include "Option.hpp"
 #include <chrono>
+#include "assert.h"
 #include "PricingResults.hpp"
 
 using namespace std;
-
 int main(int argc, char **argv)
 {
 
@@ -67,7 +67,7 @@ int main(int argc, char **argv)
         PnlVect *delta1 = pnl_vect_create_from_zero(size);
         PnlVect *delta2 = pnl_vect_create_from_zero(size);
 
-        monteCarlo1->price(price, stdev);
+        //monteCarlo1->price(price, stdev);
         // pnl_vect_print(delta1);
         PnlMat *past = pnl_mat_create_from_zero(size, nbTimeStep + 1);
         // blackScholesModel2->asset(past, T, nbTimeStep, rng);
@@ -75,7 +75,7 @@ int main(int argc, char **argv)
         // pnl_mat_set_col(past, spot, 0);
          PnlMat *shift_path = pnl_mat_create(past->n, past->m);
         // monteCarlo1->delta(past, t, delta1, vect_stdev);
-         monteCarlo1->delta(delta1, vect_stdev1);
+         //monteCarlo1->delta(delta1, vect_stdev1);
         //  pnl_vect_print(delta1);
         //  pnl_vect_print(vect_stdev1);
         //  blackScholesModel2->shiftAsset(shift_path, past, 1, 9, 0, T / nbTimeStep);
@@ -99,15 +99,15 @@ int main(int argc, char **argv)
         //std::cout << "Time for normal loop : " << elapsed.count() << std::endl;
         //pnl_vect_print(delta2);
         // // pnl_vect_print(vect_stdev);
-        // double PL1 = 0;
-        //  int H = 3;
-        //  PnlMat *matTot = pnl_mat_create_from_zero(size, H+1);
-        //  blackScholesModel2->asset(matTot, T, nbTimeStep, rng);
-        //  monteCarlo1->PL(matTot, PL1);
-        //  printf(" portf = %f\n", PL1);
+        double PL1 = 0;
+         int H = 3;
+         PnlMat *matTot = pnl_mat_create_from_zero(size, H+1);
+         blackScholesModel2->asset(matTot, T, nbTimeStep, rng);
+         monteCarlo1->PL(matTot, PL1);
+         printf(" portf = %f\n", PL1);
 
-        PricingResults res = PricingResults(price, stdev, delta1, vect_stdev1);
-        cout << res << endl;
+        //PricingResults res = PricingResults(price, stdev, delta1, vect_stdev1);
+        //cout << res << endl;
         // pnl_vect_print(delta1);
         pnl_vect_free(&vect_stdev1); 
         pnl_vect_free(&vect_stdev2); 
@@ -166,5 +166,5 @@ int main(int argc, char **argv)
     //std::cout << "le prix de l'option " << type << " est " << price << std::endl;
     // std::cout << "largeur de l'intervalle " << type << " est " << stdev << std::endl;
 
-    return 0;
+    //return 0;
 }
