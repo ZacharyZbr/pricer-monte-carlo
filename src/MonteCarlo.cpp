@@ -157,10 +157,10 @@ void MonteCarlo::delta(PnlVect *delta, PnlVect *std_dev)
     int nb_assets = opt_->size_;
     int steps = opt_->nbTimeSteps_;
 
-    PnlVect *meanPayoffSquared = pnl_vect_create(std_dev->size);
-    PnlMat *shiftedMatrixMinus = pnl_mat_create(nb_assets, steps + 1);
-    PnlMat *shiftedMatrixPlus = pnl_mat_create(nb_assets, steps + 1);
-    PnlMat *pMatrix = pnl_mat_create(nb_assets, steps + 1);
+    PnlVect *meanPayoffSquared = pnl_vect_create_from_zero(std_dev->size);
+    PnlMat *shiftedMatrixMinus = pnl_mat_create_from_zero(nb_assets, steps + 1);
+    PnlMat *shiftedMatrixPlus = pnl_mat_create_from_zero(nb_assets, steps + 1);
+    PnlMat *pMatrix = pnl_mat_create_from_zero(nb_assets, steps + 1);
     for (long sample = 0; sample < nbSamples_; sample++)
     {
 
@@ -189,6 +189,7 @@ void MonteCarlo::delta(PnlVect *delta, PnlVect *std_dev)
 
     double facteur_mult = exp(-mod_->r_ * opt_->T_) / (nbSamples_ * 2 * 0.1);
     pnl_vect_mult_scalar(delta, facteur_mult);
+    pnl_vect_free(&meanPayoffSquared);
 }
 
 void MonteCarlo::paralleldelta(PnlVect *delta, PnlVect *std_dev)

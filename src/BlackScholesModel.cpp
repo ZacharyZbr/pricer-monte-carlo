@@ -102,6 +102,8 @@ void BlackScholesModel::asset(PnlMat *path, double t, double T, int nbTimeSteps,
         pnl_mat_set_col(path, past_col, time_step);
     }
 
+    pnl_vect_free(&past_col);
+
     pnl_vect_rng_normal(gaussian_, size_, rng);
 
     double time_gap = -(((past->n - 1) ) * (T / nbTimeSteps) - t);
@@ -157,4 +159,5 @@ void BlackScholesModel::shiftAsset(PnlMat *shift_path, const PnlMat *path, int d
     {
         pnl_mat_set(shift_path, d, time_index, pnl_vect_get(row, time_index) * (1 + h));
     }
+    pnl_vect_free(&row);
 }

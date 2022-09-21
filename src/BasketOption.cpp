@@ -33,6 +33,7 @@ double BasketOption::payoff(const PnlMat *path)
   {
     somme += pnl_vect_get(col, k) * pnl_vect_get(lambda_, k);
   }
+  pnl_vect_free(&col);
   somme = somme - strike_;
   if (somme > 0)
   {
