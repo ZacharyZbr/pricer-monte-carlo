@@ -151,8 +151,10 @@ void BlackScholesModel::shiftAsset(PnlMat *shift_path, const PnlMat *path, int d
     {
         i_plus_un = 0;
     }
+    PnlVect *row = pnl_vect_create(d);
+    pnl_mat_get_row(row, shift_path, d);
     for (int time_index = i_plus_un; time_index < path->n; time_index++)
     {
-        pnl_mat_set(shift_path, d, time_index, pnl_mat_get(shift_path, d, time_index) * (1 + h));
+        pnl_mat_set(shift_path, d, time_index, pnl_vect_get(row, time_index) * (1 + h));
     }
 }
