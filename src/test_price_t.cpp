@@ -43,7 +43,7 @@ int main(int argc, char **argv)
     P->extract("sample number", n_samples);
     P->extract("correlation", correlation);
     P->extract("timestep number", nbTimeStep);
-    double t = 0.12;
+    double t = 0;
 
     P->extract("payoff coefficients", payoff_coefficients, size);
     PnlVect *vect_stdev = pnl_vect_create_from_zero(size);
@@ -57,8 +57,10 @@ int main(int argc, char **argv)
         BasketOption *pBasketOption1 = new BasketOption(T, nbTimeStep, size, payoff_coefficients, strike);
 
         MonteCarlo *monteCarlo1 = new MonteCarlo(blackScholesModel1, pBasketOption1, rng, fdStep, 50000);
-        PnlVect *vect_stdev = pnl_vect_create_from_zero(size);
+        PnlVect *vect_stdev1 = pnl_vect_create(size);
+        PnlVect *vect_stdev2 = pnl_vect_create(size);
         PnlVect *delta1 = pnl_vect_create(size);
+        PnlVect *delta2 = pnl_vect_create(size);
 
         // monteCarlo1->price(price, stdev);
         // pnl_vect_print(delta1);
@@ -66,36 +68,39 @@ int main(int argc, char **argv)
         blackScholesModel2->asset(past, T, nbTimeStep, rng);
         pnl_mat_resize(past, size, floor(t * nbTimeStep) + 1);
         pnl_mat_set_col(past, spot, 0);
-        // PnlMat *shift_path = pnl_mat_create(past->n, past->m);
-        //monteCarlo1->delta(past, t, delta1,vect_stdev);
-        //monteCarlo1->delta(delta1, vect_stdev);
-        // pnl_vect_print(delta1);
-        // blackScholesModel2->shiftAsset(shift_path, past, 1, 9, 0, T / nbTimeStep);
-        // pnl_mat_print(shift_path);
+        PnlMat *shift_path = pnl_mat_create(past->n, past->m);
+        // monteCarlo1->delta(past, t, delta1, vect_stdev);
+        //  monteCarlo1->delta(delta1, vect_stdev);
+        //  pnl_vect_print(delta1);
+        //  blackScholesModel2->shiftAsset(shift_path, past, 1, 9, 0, T / nbTimeStep);
+        //  pnl_mat_print(shift_path);
         //  pnl_mat_resize(past, size, floor(t * nbTimeStep) + 1);
-        //  monteCarlo1->price(past, t, price, stdev);
-        
-        // auto startP = std::chrono::high_resolution_clock::now();
-        // monteCarlo1->paralleldelta(delta1, vect_stdev);
-        // auto finishP = std::chrono::high_resolution_clock::now();
-        // std::chrono::duration<double> elapsedP = finishP - startP;
-        // std::cout << "Time for parallel loop : " << elapsedP.count() << std::endl;
+        monteCarlo1->price(past, t, price, stdev);
 
-        // auto start = std::chrono::high_resolution_clock::now();
-        // //monteCarlo1->delta(past, t, delta1, vect_stdev);
-        // auto finish = std::chrono::high_resolution_clock::now();
-        // std::chrono::duration<double> elapsed = finish - start;
-        // std::cout << "Time for normal loop : " << elapsed.count() << std::endl;
-        // pnl_vect_print(delta1);
+        auto startP = std::chrono::high_resolution_clock::now();
+        monteCarlo1->paralleldelta(delta1, vect_stdev1);
+        auto finishP = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsedP = finishP - startP;
+        std::cout << "Time for parallel loop : " << elapsedP.count() << std::endl;
+        pnl_vect_print(delta1);
+        pnl_vect_free(&delta1);
+        pnl_vect_free(&vect_stdev1);
+
+        auto start = std::chrono::high_resolution_clock::now();
+        monteCarlo1->delta(delta2, vect_stdev2);
+        auto finish = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsed = finish - start;
+        std::cout << "Time for normal loop : " << elapsed.count() << std::endl;
+        pnl_vect_print(delta2);
         // pnl_vect_print(vect_stdev);
-        double PL1 = 0;
-        int H = 3;
-        PnlMat *matTot = pnl_mat_create_from_zero(size, H+1);
-        blackScholesModel2->asset(matTot, T, nbTimeStep, rng);
-        monteCarlo1->PL(matTot, PL1);
-        printf(" portf = %f\n", PL1);
+        //  double PL1 = 0;
+        //  int H = 3;
+        //  PnlMat *matTot = pnl_mat_create_from_zero(size, H+1);
+        //  blackScholesModel2->asset(matTot, T, nbTimeStep, rng);
+        //  monteCarlo1->PL(matTot, PL1);
+        //  printf(" portf = %f\n", PL1);
 
-        //pnl_vect_print(delta1);
+        // pnl_vect_print(delta1);
         delete (pBasketOption1);
         delete (monteCarlo1);
     }
@@ -107,15 +112,15 @@ int main(int argc, char **argv)
         AsianOption *pAsianOption1 = new AsianOption(T, nbTimeStep, size, strike, payoff_coefficients);
         MonteCarlo *monteCarlo1 = new MonteCarlo(blackScholesModel1, pAsianOption1, rng, T / nbTimeStep, 50000);
 
-        //PnlMat *past = pnl_mat_create_from_zero(size, nbTimeStep + 1);
-        //blackScholesModel2->asset(past, T, nbTimeStep, rng);
+        // PnlMat *past = pnl_mat_create_from_zero(size, nbTimeStep + 1);
+        // blackScholesModel2->asset(past, T, nbTimeStep, rng);
 
-        //pnl_mat_resize(past, size, floor(t * nbTimeStep) + 1);
+        // pnl_mat_resize(past, size, floor(t * nbTimeStep) + 1);
         monteCarlo1->price(price, stdev);
-        //monteCarlo1->price(past, t, price, stdev);
-        // printf("Le prix est : %f\n", price);
-        // printf("Liste des deltats en t:\n");
-        //monteCarlo1->delta(past, t, deltaT, vect_stdev);
+        // monteCarlo1->price(past, t, price, stdev);
+        //  printf("Le prix est : %f\n", price);
+        //  printf("Liste des deltats en t:\n");
+        // monteCarlo1->delta(past, t, deltaT, vect_stdev);
         monteCarlo1->delta(deltaT, vect_stdev);
         pnl_vect_print(deltaT);
         pnl_vect_print(vect_stdev);
@@ -147,7 +152,7 @@ int main(int argc, char **argv)
     pnl_vect_free(&payoff_coefficients);
     pnl_rng_free(&rng);
     std::cout << "le prix de l'option " << type << " est " << price << std::endl;
-    //std::cout << "largeur de l'intervalle " << type << " est " << stdev << std::endl;
+    // std::cout << "largeur de l'intervalle " << type << " est " << stdev << std::endl;
 
     return 0;
 }
