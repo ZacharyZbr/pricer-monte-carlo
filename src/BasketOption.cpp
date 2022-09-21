@@ -29,10 +29,7 @@ double BasketOption::payoff(const PnlMat *path)
   //pnl_mat_get(path, k, path->n - 1) * pnl_vect_get(lambda_, k);
   PnlVect *col = pnl_vect_create(path->m-1);
   pnl_mat_get_col(col, path, path->n - 1);
-  for (int k = 0; k < path->m; k++)
-  {
-    somme += pnl_vect_get(col, k) * pnl_vect_get(lambda_, k);
-  }
+  somme = pnl_vect_scalar_prod(col, lambda_);
   pnl_vect_free(&col);
   somme = somme - strike_;
   if (somme > 0)

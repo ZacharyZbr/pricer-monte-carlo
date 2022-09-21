@@ -91,9 +91,9 @@ int main(int argc, char **argv)
         // pnl_vect_free(&delta1);
         // pnl_vect_free(&vect_stdev1);
 
-        auto start = std::chrono::high_resolution_clock::now();
-        monteCarlo1->delta(delta2, vect_stdev2);
-        auto finish = std::chrono::high_resolution_clock::now();
+        // auto start = std::chrono::high_resolution_clock::now();
+        // monteCarlo1->delta(delta2, vect_stdev2);
+        // auto finish = std::chrono::high_resolution_clock::now();
         //std::chrono::duration<double> elapsed = finish - start;
         //std::cout << "Time for normal loop : " << elapsed.count() << std::endl;
         //pnl_vect_print(delta2);

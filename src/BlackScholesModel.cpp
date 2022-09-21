@@ -48,7 +48,6 @@ void BlackScholesModel::asset(PnlMat *path, double T, int nbTimeSteps, PnlRng *r
 
         for (int underlyingAsset = 0; underlyingAsset < size_; underlyingAsset++)
         {
-
             pnl_mat_get_row(rowChol_, correlationMat_, underlyingAsset);
 
             double volatility = pnl_vect_get(sigma_, underlyingAsset);

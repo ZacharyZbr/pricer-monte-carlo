@@ -31,11 +31,10 @@ void MonteCarlo::price(double &prix, double &std_dev)
     PnlMat *pMatrix = pnl_mat_create_from_zero(nb_assets, steps + 1);
     for (long sample = 0; sample < nbSamples_; sample++)
     {
-
         mod_->asset(pMatrix, opt_->T_, steps, rng_);
-
-        meanPayoff += opt_->payoff(pMatrix);
-        meanPayoffSquared += opt_->payoff(pMatrix) * opt_->payoff(pMatrix);
+        double payoff = opt_->payoff(pMatrix);
+        meanPayoff += payoff;
+        meanPayoffSquared += payoff * payoff;
     }
     pnl_mat_free(&pMatrix);
     prix = exp(-mod_->r_ * opt_->T_) * meanPayoff / nbSamples_;
@@ -181,9 +180,8 @@ void MonteCarlo::delta(PnlVect *delta, PnlVect *std_dev)
     pnl_mat_free(&shiftedMatrixPlus);
     for (int d = 0; d < opt_->size_; d++)
     {
-        // double ksi_carre = (exp(-2 * mod_->r_ * opt_->T_) / (0.1 * 0.1 * 2 * 2 * mod_->spot_->array[d] * mod_->spot_->array[d])) * ((pnl_vect_get(meanPayoffSquared, d) / nbSamples_) - ((delta->array[d] * mod_->spot_->array[d]) / nbSamples_) * ((delta->array[d] * mod_->spot_->array[d]) / nbSamples_));
         double delta_d = pnl_vect_get(delta, d);
-        double ksi_carre = (1 / (0.1 * 0.1 * 2 * 2)) * (exp(-2 * mod_->r_ * opt_->T_) * 1 / nbSamples_ * pnl_vect_get(meanPayoffSquared, d) - (delta_d / nbSamples_) * (delta_d / nbSamples_) * exp(-2 * mod_->r_ * opt_->T_));
+        double ksi_carre = (exp(-2 * mod_->r_ * opt_->T_) / (0.1 * 0.1 * 2 * 2 * mod_->spot_->array[d] * mod_->spot_->array[d])) * ((pnl_vect_get(meanPayoffSquared, d) / nbSamples_) - ((delta->array[d] * mod_->spot_->array[d]) / nbSamples_) * ((delta->array[d] * mod_->spot_->array[d]) / nbSamples_));
         pnl_vect_set(std_dev, d, sqrt(ksi_carre / nbSamples_));
     }
 
@@ -241,7 +239,6 @@ void MonteCarlo::PL(const PnlMat *matriceTot, double &PL)
 {
     double pas = opt_->T_ / matriceTot->m;
     PnlVect *delta1 = pnl_vect_create(opt_->size_);
-
     PnlVect *vect_stdDev = pnl_vect_create(opt_->size_);
     double price1;
     double std_dev;
@@ -255,11 +252,8 @@ void MonteCarlo::PL(const PnlMat *matriceTot, double &PL)
         PnlMat *past = pnl_mat_create_from_zero(opt_->size_, floor(opt_->nbTimeSteps_ + 1));
         pnl_mat_clone(past, matriceTot);
         pnl_mat_resize(past, opt_->size_, floor(k / pas) + 1);
-        pnl_mat_print(past);
         delta(past, k - pas, deltaMoins, vect_stdDev);
         delta(past, k, deltaPlus, vect_stdDev);
-        // pnl_vect_print(deltaMoins);
-        // pnl_vect_print(deltaPlus);
         pnl_vect_minus_vect(deltaPlus, deltaMoins);
         PnlVect *col = pnl_vect_create(opt_->size_);
         pnl_mat_get_col(col, past, past->n - 1);
